@@ -1,0 +1,32 @@
+name: Озвучка / Voice issue
+description: Неверное ударение, неподходящий голос, обрыв или пропуск слова / Wrong stress, wrong voice, cut-off line
+labels: [voice]
+body:
+  - type: input
+    id: quest
+    attributes:
+      label: Задание / Quest
+      description: Название или ID задания (видно на Wowhead) / Quest name or ID
+    validations:
+      required: true
+  - type: input
+    id: npc
+    attributes:
+      label: NPC
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Что не так / What is wrong
+      options:
+        - Неверное ударение / Wrong stress
+        - Голос не подходит персонажу / Voice does not fit
+        - Обрыв, пропуск или лишние слова / Cut-off or missing words
+        - Нет озвучки / No audio
+        - Другое / Other
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Подробности / Details
+      description: Какое слово и как должно звучать, например «зЕмли», а не «землИ» / Which word and how it should sound

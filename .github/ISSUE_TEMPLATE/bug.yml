@@ -1,0 +1,20 @@
+name: Ошибка аддона / Add-on bug
+description: Ошибка Lua, не работает интерфейс или настройки / Lua error, UI or settings not working
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: Версия Chorus и пакетов / Chorus and pack versions
+    validations:
+      required: true
+  - type: textarea
+    id: error
+    attributes:
+      label: Текст ошибки / Error text
+      description: Лучше всего из BugSack/BugGrabber / Preferably from BugSack/BugGrabber
+      render: text
+  - type: textarea
+    id: steps
+    attributes:
+      label: Как повторить / Steps to reproduce
