@@ -1,0 +1,12 @@
+## Interface: 120000, 120001, 120005, 120007, 120100, 120105
+## Title: Chorus
+## Title-ruRU: Chorus — озвучка заданий
+## Notes: Voiced quests: each NPC speaks in their own voice. Voice packs are separate addons (Chorus_<locale>_<expansion>).
+## Notes-ruRU: Озвучка заданий: каждый NPC говорит своим голосом. Озвучка ставится отдельными пакетами (Chorus_<язык>_<дополнение>).
+## Author: denismart
+## Version: @project-version@
+## SavedVariables: ChorusDB
+## IconTexture: Interface\Icons\INV_Misc_Ear_Human_02
+## AddonCompartmentFunc: Chorus_OpenConfig
+
+Core.lua
