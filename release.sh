@@ -28,7 +28,7 @@ else
     tag="$name-v$ver"
     remote="C:\\wow-voice\\release"
     # Копия пакета с версией в .toc (UTF-8 без BOM) и zip встроенным в Windows tar
-    ps="\$s='C:\\wow-voice\\addon\\$name'; \$r='$remote'; \$d=\"\$r\\$name\"
+    ps="\$ProgressPreference='SilentlyContinue'; \$s='C:\\wow-voice\\addon\\$name'; \$r='$remote'; \$d=\"\$r\\$name\"
 New-Item -ItemType Directory -Force \$r | Out-Null
 robocopy \$s \$d /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
 \$toc=\"\$d\\$name.toc\"; \$t=(Get-Content \$toc -Encoding UTF8) -replace '^## Version: .*', '## Version: $ver'
