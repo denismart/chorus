@@ -28,6 +28,7 @@ local defaults = {
 	preroll = 1.5,        -- задержка перед началом чтения, секунд
 	complete = false,     -- читать текст при сдаче задания
 	gossip = false,       -- читать обычные диалоги с NPC
+	books = true,         -- читать книги, письма и таблички (окно текста)
 	pos = nil,            -- сохранённое положение окна субтитров
 	width = 520,          -- ширина окна субтитров
 	height = 96,          -- высота окна субтитров: заголовок и три строки текста
@@ -593,7 +594,7 @@ local function Enqueue(item)
 	for _, queued in ipairs(queue) do
 		if queued.key == item.key then return end
 	end
-	queue[#queue + 1] = { key = item.key, text = item.text, title = item.title, npc = item.npc }
+	queue[#queue + 1] = { key = item.key, text = item.text, title = item.title, npc = item.npc, book = item.book }
 	if current then
 		UpdateTitle()
 	else
@@ -752,6 +753,38 @@ function handlers.GOSSIP_SHOW()
 	local npc = GetNpcInfo()
 	local item = Remember(("g%d_%s"):format(npc.id or 0, Hash(text)), text)
 	if item and db.gossip then Enqueue(item) end
+end
+
+-- Книги, письма и таблички: окно текста, срабатывает при открытии и на каждой странице.
+-- Ключ b<хеш названия>_<страница>: тот же djb2 по байтам UTF-8 считает генератор озвучки.
+-- Говорящего нет, поэтому голос рассказчика; у писем автор берётся из ItemTextGetCreator.
+function handlers.ITEM_TEXT_READY()
+	local text = Plain(ItemTextGetText and ItemTextGetText())
+	if type(text) ~= "string" then return end
+	text = CleanText((text:gsub("<[^>]+>", " "))):gsub("%s+", " "):trim()
+	if text == "" then return end
+	local title = Plain(ItemTextGetItem and ItemTextGetItem())
+	local page = (ItemTextGetPage and ItemTextGetPage()) or 1
+	local author = Plain(ItemTextGetCreator and ItemTextGetCreator())
+	local key = ("b%s_%d"):format(Hash(title or text), page)
+	local entry = db.texts[key]
+	if not entry or entry.t ~= text then
+		entry = { t = text, title = title, page = page, kind = "book" }
+		db.texts[key] = entry
+	end
+	entry.author = author or entry.author
+	if not db.books then return end
+	-- Перелистнули страницу: предыдущая страница той же книги больше не нужна
+	if current and current.book then Skip() end
+	Enqueue({ key = key, text = text, title = title and page > 1 and ("%s, стр. %d"):format(title, page) or title, npc = author, book = true })
+end
+
+-- Книгу закрыли: её чтение больше не нужно, задания в очереди остаются
+function handlers.ITEM_TEXT_CLOSED()
+	for i = #queue, 1, -1 do
+		if queue[i].book then table.remove(queue, i) end
+	end
+	if current and current.book then Skip() end
 end
 
 -- Говорящая голова: игра сообщает длительность реплики
@@ -935,6 +968,7 @@ commands[""] = function()
 	print(PREFIX .. "/qv gap <сек> - пауза между заданиями (сейчас " .. db.gap .. ")")
 	print(PREFIX .. "/qv complete - читать текст при сдаче задания (" .. OnOff(db.complete) .. ")")
 	print(PREFIX .. "/qv gossip - читать обычные диалоги (" .. OnOff(db.gossip) .. ")")
+	print(PREFIX .. "/qv books - читать книги, письма и таблички (" .. OnOff(db.books) .. ")")
 	print(PREFIX .. "/qv tts - синтез речи, когда нет файла (" .. OnOff(db.tts) .. ")")
 	print(PREFIX .. "/qv voices, /qv voice <номер>, /qv rate <-10..10> - настройки синтеза речи")
 	print(PREFIX .. "/qv channel <Master|Dialog|SFX> - канал для файлов")
@@ -972,6 +1006,7 @@ commands.waitany = function() Toggle("waitAny", "учёт реплик любы�
 commands.skip = function() Skip() end
 commands.tts = function() Toggle("tts", "синтез речи") end
 commands.complete = function() Toggle("complete", "чтение при сдаче задания") end
+commands.books = function() Toggle("books", "чтение книг, писем и табличек") end
 commands.gossip = function() Toggle("gossip", "чтение диалогов") end
 
 commands.subs = function()
@@ -1163,6 +1198,7 @@ local function CreateConfig()
 	Check("Озвучка включена", "enabled", function(on) if not on then StopAll() end end)
 	Check("Читать текст и при сдаче задания", "complete")
 	Check("Читать обычные диалоги с NPC", "gossip")
+	Check("Читать книги, письма и таблички", "books")
 	Check("Если нет готового файла, читать синтезом речи", "tts")
 	Check("Обрывать речь при закрытии окна задания", "stopOnClose")
 	Check("Ждать, пока договорит NPC или закончится ролик", "waitNpc")
