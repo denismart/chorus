@@ -45,6 +45,7 @@ local defaults = {
 	style = "classic",    -- стиль окна субтитров (STYLES)
 	font = 1,             -- шрифт субтитров (FONTS)
 	bgAlpha = 100,        -- плотность фона окна субтитров, %
+	border = true,        -- рамка вокруг окна субтитров
 	texts = {},           -- собранные тексты: ключ -> { t, n, s, id, title }
 	library = {},         -- прочитанные книги: ключ первой страницы -> { title, author, material, zone, at, pages }
 }
@@ -254,7 +255,37 @@ local STYLES = {
 	-- Как субтитры в кино: без фона, текст крупнее, с обводкой и по центру
 	{ id = "cinema", name = "Кино", edge = "none", bg = { 0, 0, 0, 0 }, border = { 0, 0, 0, 0 },
 		title = { 1, 0.82, 0 }, text = { 1, 1, 1 }, outline = "OUTLINE", center = true, bigger = 2 },
+	-- Как в ролевых играх: без рамки, тёмный фон растворяется по краям и чуть выходит за окно
+	{ id = "haze", name = "Дымка", edge = "none", soft = true, bg = { 0, 0, 0, 0.8 }, border = { 0, 0, 0, 0 },
+		accent = { 0.85, 0.68, 0.32 }, accentAlpha = 0.6, title = { 1, 0.82, 0 }, text = { 1, 1, 1 } },
 }
+local SOFT_BG = "Interface\\AddOns\\Chorus\\Icons\\bg-soft"
+
+-- Подложка с размытыми краями из трёх частей: края постоянной ширины, середина тянется.
+-- Выходит за окно на softPadX/softPadY, чтобы растворение не съедало место под текст
+local function SoftBg(f)
+	if f.soft then return f.soft end
+	local padX, padY = f.softPadX or 28, f.softPadY or 16
+	local left = f:CreateTexture(nil, "BACKGROUND", nil, -2)
+	left:SetTexture(SOFT_BG)
+	left:SetTexCoord(0, 0.25, 0, 1)
+	left:SetPoint("TOPLEFT", -padX, padY)
+	left:SetPoint("BOTTOMLEFT", -padX, -padY)
+	left:SetWidth(padX * 2)
+	local right = f:CreateTexture(nil, "BACKGROUND", nil, -2)
+	right:SetTexture(SOFT_BG)
+	right:SetTexCoord(0.75, 1, 0, 1)
+	right:SetPoint("TOPRIGHT", padX, padY)
+	right:SetPoint("BOTTOMRIGHT", padX, -padY)
+	right:SetWidth(padX * 2)
+	local mid = f:CreateTexture(nil, "BACKGROUND", nil, -2)
+	mid:SetTexture(SOFT_BG)
+	mid:SetTexCoord(0.25, 0.75, 0, 1)
+	mid:SetPoint("TOPLEFT", left, "TOPRIGHT")
+	mid:SetPoint("BOTTOMRIGHT", right, "BOTTOMLEFT")
+	f.soft = { left, mid, right }
+	return f.soft
+end
 -- Шрифты с кириллицей из клиента игры; если файла нет, берётся запасной или обычный шрифт
 local FONTS = {
 	{ name = "Обычный" },
@@ -280,16 +311,28 @@ local function SetFontSafe(fs, font, size, flags)
 end
 
 -- Оформляет окно субтитров или его превью: фон, рамка, подсветка, линия, шрифт и цвета
+-- styleId задают карточки стилей: они показывают стиль как есть, без галочки «Рамка»
 local function ApplyStyle(f, styleId)
 	local style = StyleOf(styleId or db.style)
 	local font = FONTS[db.font] or FONTS[1]
-	f:SetBackdrop(EDGES[style.edge])
+	local edge = style.edge
+	if not styleId and db.border == false then edge = "none" end
+	f:SetBackdrop(EDGES[edge])
 	local alpha = (db.bgAlpha or 100) / 100
-	f:SetBackdropColor(style.bg[1], style.bg[2], style.bg[3], style.bg[4] * alpha)
 	f:SetBackdropBorderColor(unpack(style.border))
+	if style.soft then
+		f:SetBackdropColor(0, 0, 0, 0)
+		for _, texture in ipairs(SoftBg(f)) do
+			texture:SetVertexColor(style.bg[1], style.bg[2], style.bg[3], style.bg[4] * alpha)
+			texture:Show()
+		end
+	else
+		f:SetBackdropColor(style.bg[1], style.bg[2], style.bg[3], style.bg[4] * alpha)
+		for _, texture in ipairs(f.soft or {}) do texture:Hide() end
+	end
 	local accent = style.accent
 	if f.shine then
-		f.shine:SetShown(accent ~= nil and not style.flat)
+		f.shine:SetShown(accent ~= nil and not style.flat and not style.soft)
 		if accent and f.shine.SetGradient and CreateColor then
 			f.shine:SetGradient("VERTICAL", CreateColor(accent[1], accent[2], accent[3], 0),
 				CreateColor(accent[1], accent[2], accent[3], 0.22 * (style.accentAlpha or 1)))
@@ -2078,12 +2121,13 @@ local function CreateConfig()
 	-- Карточки стилей: каждая нарисована в своём стиле, выбранная обведена золотом
 	local styleCards = {}
 	do
-		local gap, height = 6, 30
-		local width = (WIDTH - gap * (#STYLES - 1)) / #STYLES
+		local gap, height, columns = 8, 26, 3
+		local width = (WIDTH - gap * (columns - 1)) / columns
 		for index, style in ipairs(STYLES) do
 			local card = CreateFrame("Button", nil, page, "BackdropTemplate")
 			card:SetSize(width, height)
-			card:SetPoint("TOPLEFT", X + (index - 1) * (width + gap), y - 2)
+			card:SetPoint("TOPLEFT", X + (index - 1) % columns * (width + gap), y - 4 - math.floor((index - 1) / columns) * (height + gap))
+			card.softPadX, card.softPadY = 6, 4
 			card.title = card:CreateFontString(nil, "ARTWORK", "GameFontNormal")
 			card.title:SetPoint("CENTER", 0, 0)
 			card.title:SetText(style.name)
@@ -2112,7 +2156,7 @@ local function CreateConfig()
 			end)
 			styleCards[index] = card
 		end
-		y = y - height - 10
+		y = y - math.ceil(#STYLES / columns) * (height + gap) - 4
 	end
 	refreshers[#refreshers + 1] = function()
 		for index, card in ipairs(styleCards) do
@@ -2127,6 +2171,7 @@ local function CreateConfig()
 	Slider("Плотность фона", 0, 100, 5,
 		function() return db.bgAlpha or 100 end, function(value) db.bgAlpha = value; ApplyLayout() end, "%",
 		"0 - только текст без фона, 100 - фон как задумано стилем.")
+	Check("Рамка вокруг окна", "border", function() ApplyLayout() end, "Без рамки остаётся только фон. У «Кино» и «Дымки» рамки нет в любом случае.")
 
 	Header("Окно субтитров")
 	Check("Показывать субтитры", "subtitles", function(on) if not on and subtitle then subtitle:Hide() end end)
