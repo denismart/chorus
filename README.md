@@ -26,6 +26,7 @@ Chorus озвучивает задания World of Warcraft. Ключевые �
 - Субтитры внизу экрана, окно можно перетащить.
 - Очередь: несколько принятых заданий читаются по очереди, кнопки «Стоп» и «Далее».
 - Чтение продолжается с той фразы, на которой остановилось.
+- Книги, письма и таблички читаются вслух постранично и собираются в библиотеку (`/chorus lib`): всё прочитанное можно переслушать.
 - Если для задания нет озвучки, его читает встроенный синтез речи игры.
 - Озвучка ставится отдельными пакетами: только нужные язык и дополнения.
 
@@ -44,7 +45,7 @@ Chorus озвучивает задания World of Warcraft. Ключевые �
 
 ### Быстрый старт
 
-Возьмите любое задание Midnight — озвучка начнётся сама. Настройки: `/chorus` (или `/qv`), а также кнопка в меню аддонов у миникарты.
+Возьмите любое задание Midnight — озвучка начнётся сама. Настройки: `/chorus`, а также кнопка в меню аддонов у миникарты.
 
 ### Частые вопросы
 
@@ -72,7 +73,6 @@ Chorus озвучивает задания World of Warcraft. Ключевые �
 - [Silero](https://github.com/snakers4/silero-stress) — расстановка ударений.
 - [ai-sage / Сбер](https://huggingface.co/ai-sage/GigaAM-v3) — распознавание речи GigaAM.
 - [wowdev](https://github.com/wowdev) — listfile и TACTSharp.
-- QuestVoice — аддон, из которого выросло ядро Chorus.
 
 ### Права
 
@@ -88,6 +88,7 @@ Chorus voices World of Warcraft quests. Key characters read the quest text **in 
 
 - Voiced quest accept, progress and turn-in text.
 - Movable subtitles, a playback queue with Stop and Next, resume from the last phrase.
+- Books, letters and plaques are read aloud page by page and collected into a library (`/chorus lib`) so you can listen again.
 - Falls back to the game's built-in text-to-speech when a line has no recording.
 - Voice packs are separate add-ons: install only the languages and expansions you need.
 

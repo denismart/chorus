@@ -3,3 +3,4 @@ package-as: Chorus
 ignore:
   - README.md
   - CHANGELOG.md
+  - media

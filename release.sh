@@ -21,7 +21,7 @@ if [[ "$kind" == core ]]; then
     [[ $dry == 1 || -z "$(git status --porcelain)" ]] || { echo "есть незакоммиченные изменения"; exit 1; }
     tmp="$(mktemp -d)"; mkdir "$tmp/Chorus"
     sed "s/@project-version@/$ver/" Chorus.toc > "$tmp/Chorus/Chorus.toc"
-    cp Core.lua LICENSE "$tmp/Chorus/"
+    cp -R Core.lua LICENSE Icon.tga Icons "$tmp/Chorus/"
     (cd "$tmp" && zip -qr - Chorus) > "$zip"; rm -r "$tmp"
     notes="$(awk -v v="## $ver" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md)"
 else
@@ -54,10 +54,19 @@ echo "GitHub: готово"
 # CurseForge (если настроен)
 pid_var="CF_PROJECT_${name}"; pid="${!pid_var:-}"
 if [[ -n "${CF_API_TOKEN:-}" && -n "$pid" ]]; then
+    # Версии игры: все из GAME_VERSIONS (через пробел), по умолчанию одна GAME_VERSION
     gv=$(curl -fsS -H "X-Api-Token: $CF_API_TOKEN" https://wow.curseforge.com/api/game/versions \
-        | python3 -c "import json,sys; v=[x['id'] for x in json.load(sys.stdin) if x['name']=='$GAME_VERSION']; print(v[0] if v else '')")
-    [[ -n "$gv" ]] || { echo "CurseForge: не найдена версия игры $GAME_VERSION"; exit 1; }
-    meta=$(python3 -c "import json,sys; print(json.dumps({'changelog': sys.argv[1], 'changelogType': 'markdown', 'displayName': '$name $ver', 'gameVersions': [$gv], 'releaseType': 'beta'}))" "${notes:-$name $ver}")
+        | python3 -c "import json,sys; want=sys.argv[1].split(); v=[str(x['id']) for x in json.load(sys.stdin) if x['name'] in want]; print(','.join(v))" "${GAME_VERSIONS:-$GAME_VERSION}")
+    [[ -n "$gv" ]] || { echo "CurseForge: не найдены версии игры ${GAME_VERSIONS:-$GAME_VERSION}"; exit 1; }
+    # Пакет озвучки требует ядро: на CurseForge зависимость задаётся у каждого файла
+    meta=$(python3 -c "
+import json, sys
+name, ver, kind, core, notes = sys.argv[1:6]
+meta = {'changelog': notes, 'changelogType': 'markdown', 'displayName': f\"{name.replace('_', ' ')} {ver}\",
+        'gameVersions': [int(x) for x in sys.argv[6].split(',')], 'releaseType': 'beta'}
+if kind == 'pack':
+    meta['relations'] = {'projects': [{'slug': core, 'type': 'requiredDependency'}]}
+print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv")
     curl -fsS -H "X-Api-Token: $CF_API_TOKEN" -F "metadata=$meta" -F "file=@$zip" \
         "https://wow.curseforge.com/api/projects/$pid/upload-file" && echo && echo "CurseForge: загружено"
 else

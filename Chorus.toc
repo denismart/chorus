@@ -6,7 +6,7 @@
 ## Author: denismart
 ## Version: @project-version@
 ## SavedVariables: ChorusDB
-## IconTexture: Interface\Icons\INV_Misc_Ear_Human_02
+## IconTexture: Interface\AddOns\Chorus\Icon
 ## AddonCompartmentFunc: Chorus_OpenConfig
 
 Core.lua
