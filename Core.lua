@@ -1590,20 +1590,38 @@ local PRESETS = {
 		set = { autoQuest = true, questButton = true, complete = true, progress = true, gossip = true, books = true, mail = true, waitNpc = true, tts = true, duck = true, duckMusic = true } },
 }
 
+-- Настройки, которые задают наборы: ручная правка любой из них снимает выбранный набор
+local PRESET_FIELDS = {}
+for _, preset in ipairs(PRESETS) do
+	for field in pairs(preset.set) do PRESET_FIELDS[field] = true end
+end
+
 local function ApplyPreset(preset)
 	for field, value in pairs(preset.set) do db[field] = value end
+	db.preset = preset.id
 	Duck(false)
 	print(PREFIX .. "набор настроек: " .. preset.name .. ".")
 end
 
--- Какой набор совпадает с текущими настройками (nil - настроено вручную)
+local function Matches(preset)
+	for field, value in pairs(preset.set) do
+		if (db[field] and true or false) ~= value then return false end
+	end
+	return true
+end
+
+-- Выбранный набор (nil - настроено вручную). db.preset: id набора, false - свои настройки,
+-- nil - ещё не выбирали (старые настройки): тогда набор узнаётся по совпадению настроек
 local function CurrentPreset()
-	for _, preset in ipairs(PRESETS) do
-		local same = true
-		for field, value in pairs(preset.set) do
-			if (db[field] and true or false) ~= value then same = false; break end
+	if db.preset == nil then
+		for _, preset in ipairs(PRESETS) do
+			if Matches(preset) then db.preset = preset.id; break end
 		end
-		if same then return preset end
+		if db.preset == nil then db.preset = false end
+	end
+	for _, preset in ipairs(PRESETS) do
+		-- Команда чата могла поменять настройку набора в обход окна: тогда набор уже не выбран
+		if preset.id == db.preset and Matches(preset) then return preset end
 	end
 end
 
@@ -1685,6 +1703,7 @@ local function CreateConfig()
 		return label
 	end
 
+	local RefreshPresets = function() end
 	local function Check(text, field, onChange, tip)
 		local check = CreateFrame("CheckButton", nil, page, "UICheckButtonTemplate")
 		check:SetSize(24, 24)
@@ -1701,6 +1720,7 @@ local function CreateConfig()
 		end
 		check:SetScript("OnClick", function(self)
 			db[field] = self:GetChecked() and true or false
+			if PRESET_FIELDS[field] then db.preset = false; RefreshPresets() end
 			if onChange then onChange(db[field]) end
 		end)
 		Tooltip(check, tip)
@@ -1848,11 +1868,12 @@ local function CreateConfig()
 		end
 		y = y - 2 * height - gap - 6
 	end
-	refreshers[#refreshers + 1] = function()
+	RefreshPresets = function()
 		local active = CurrentPreset()
 		presetNote:SetText(active and "" or "сейчас: свои настройки")
 		for index, card in ipairs(presetCards) do card.Paint(PRESETS[index] == active) end
 	end
+	refreshers[#refreshers + 1] = RefreshPresets
 	Header("Что читать")
 	Check("Читать задания автоматически", "autoQuest", nil, "Выключите, чтобы задания звучали только по кнопке «Озвучить» в окне задания.")
 	Check("Кнопка «Озвучить» в окне задания и в журнале", "questButton", nil, "Прослушать текст сразу, не принимая задание, или ещё раз - уже взятое.")
