@@ -2,25 +2,43 @@
  {
   "id": "midnight-ru",
   "title": "MIDNIGHT",
-  "icon": "media/packs/midnight-ru.png",
+  "icon": "media/packs/src/11-midnight-ru.png",
   "url": "https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack",
-  "en": ["Russian voice pack", "2,999 lines · 317 NPCs"],
-  "ru": ["Русская озвучка", "2999 реплик · 317 NPC"]
+  "en": [
+   "Russian voice pack",
+   "2,999 lines · 317 NPCs"
+  ],
+  "ru": [
+   "Русская озвучка",
+   "2999 реплик · 317 NPC"
+  ]
  },
  {
   "id": "tww-ru",
   "title": "THE WAR WITHIN",
-  "icon": null,
+  "icon": "media/packs/src/10-the-war-within-ru.png",
   "url": null,
-  "en": ["Russian voice pack", "coming soon"],
-  "ru": ["Русская озвучка", "скоро"]
+  "en": [
+   "Russian voice pack",
+   "coming soon"
+  ],
+  "ru": [
+   "Русская озвучка",
+   "скоро"
+  ]
  },
  {
   "id": "english",
   "title": "ENGLISH",
-  "icon": null,
+  "icon": "media/packs/src/base-arcane-en.png",
   "url": null,
-  "en": ["English voice packs", "coming soon"],
-  "ru": ["Английская озвучка", "скоро"]
+  "en": [
+   "English voice packs",
+   "coming soon"
+  ],
+  "ru": [
+   "Английская озвучка",
+   "скоро"
+  ]
  }
 ]
