@@ -42,6 +42,9 @@ local defaults = {
 	width = 520,          -- ширина окна субтитров
 	height = 96,          -- высота окна субтитров: заголовок и три строки текста
 	fontSize = 14,        -- размер шрифта субтитров
+	style = "classic",    -- стиль окна субтитров (STYLES)
+	font = 1,             -- шрифт субтитров (FONTS)
+	bgAlpha = 100,        -- плотность фона окна субтитров, %
 	texts = {},           -- собранные тексты: ключ -> { t, n, s, id, title }
 	library = {},         -- прочитанные книги: ключ первой страницы -> { title, author, material, zone, at, pages }
 }
@@ -61,6 +64,7 @@ local retryPending = false
 local pendingAccept = {} -- тексты, увиденные в окне задания: ID -> реплика
 local pendingComplete = {}
 local subtitle           -- окно субтитров
+local previewHook        -- обновление превью в настройках, когда меняется вид окна
 
 -- Секретные значения Midnight нельзя читать в Lua: считаем их отсутствующими
 local function Plain(value)
@@ -229,6 +233,91 @@ local function IconButton(parent, icon, tip, height)
 	return b
 end
 
+-- Стили окна субтитров: фон, рамка, акцент (подсветка сверху и линия под заголовком), цвета заголовка и текста
+local EDGES = {
+	tooltip = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border", edgeSize = 14,
+		insets = { left = 3, right = 3, top = 3, bottom = 3 } },
+	thin = { bgFile = "Interface\\Buttons\\WHITE8x8", edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 1,
+		insets = { left = 1, right = 1, top = 1, bottom = 1 } },
+	none = { bgFile = "Interface\\Buttons\\WHITE8x8" },
+}
+local STYLES = {
+	{ id = "classic", name = "Классика", edge = "tooltip", bg = { 0.05, 0.04, 0.03, 0.88 }, border = { 0.85, 0.68, 0.32, 1 },
+		accent = { 0.85, 0.68, 0.32 }, title = { 1, 0.82, 0 }, text = { 1, 1, 1 } },
+	{ id = "void", name = "Бездна", edge = "tooltip", bg = { 0.05, 0.03, 0.1, 0.9 }, border = { 0.6, 0.42, 1, 1 },
+		accent = { 0.6, 0.42, 1 }, title = { 0.8, 0.68, 1 }, text = { 0.94, 0.92, 1 } },
+	-- Светлый фон: тёмный текст без тени
+	{ id = "parchment", name = "Пергамент", edge = "tooltip", bg = { 0.9, 0.82, 0.64, 0.97 }, border = { 0.5, 0.34, 0.16, 1 },
+		accent = { 0.5, 0.34, 0.16 }, title = { 0.45, 0.14, 0.04 }, text = { 0.17, 0.11, 0.05 }, flat = true },
+	{ id = "glass", name = "Стекло", edge = "thin", bg = { 0, 0, 0, 0.55 }, border = { 1, 1, 1, 0.15 },
+		accent = { 1, 1, 1 }, accentAlpha = 0.4, title = { 0.85, 0.85, 0.85 }, text = { 1, 1, 1 } },
+	-- Как субтитры в кино: без фона, текст крупнее, с обводкой и по центру
+	{ id = "cinema", name = "Кино", edge = "none", bg = { 0, 0, 0, 0 }, border = { 0, 0, 0, 0 },
+		title = { 1, 0.82, 0 }, text = { 1, 1, 1 }, outline = "OUTLINE", center = true, bigger = 2 },
+}
+-- Шрифты с кириллицей из клиента игры; если файла нет, берётся запасной или обычный шрифт
+local FONTS = {
+	{ name = "Обычный" },
+	{ name = "Узкий", path = "Fonts\\ARIALN.TTF" },
+	{ name = "Сказочный", path = "Fonts\\MORPHEUS_CYR.TTF", alt = "Fonts\\MORPHEUS.TTF" },
+	{ name = "Рукописный", path = "Fonts\\SKURRI_CYR.TTF", alt = "Fonts\\SKURRI.TTF" },
+}
+
+local function StyleOf(id)
+	for _, style in ipairs(STYLES) do if style.id == id then return style end end
+	return STYLES[1]
+end
+
+local function SetFontSafe(fs, font, size, flags)
+	local function Try(path)
+		if not path then return false end
+		local ok = fs:SetFont(path, size, flags)
+		local now = fs:GetFont()
+		return ok or (now and now:lower():gsub("/", "\\") == path:lower())
+	end
+	if Try(font.path) or Try(font.alt) then return end
+	fs:SetFont(STANDARD_TEXT_FONT, size, flags)
+end
+
+-- Оформляет окно субтитров или его превью: фон, рамка, подсветка, линия, шрифт и цвета
+local function ApplyStyle(f, styleId)
+	local style = StyleOf(styleId or db.style)
+	local font = FONTS[db.font] or FONTS[1]
+	f:SetBackdrop(EDGES[style.edge])
+	local alpha = (db.bgAlpha or 100) / 100
+	f:SetBackdropColor(style.bg[1], style.bg[2], style.bg[3], style.bg[4] * alpha)
+	f:SetBackdropBorderColor(unpack(style.border))
+	local accent = style.accent
+	if f.shine then
+		f.shine:SetShown(accent ~= nil and not style.flat)
+		if accent and f.shine.SetGradient and CreateColor then
+			f.shine:SetGradient("VERTICAL", CreateColor(accent[1], accent[2], accent[3], 0),
+				CreateColor(accent[1], accent[2], accent[3], 0.22 * (style.accentAlpha or 1)))
+		end
+	end
+	if f.line then
+		f.line:SetShown(accent ~= nil)
+		if accent then f.line:SetColorTexture(accent[1], accent[2], accent[3], 0.45 * (style.accentAlpha or 1)) end
+	end
+	local flags = style.outline or ""
+	if f.title then
+		SetFontSafe(f.title, font, 12, flags)
+		f.title:SetTextColor(unpack(style.title))
+		f.title:SetShadowColor(0, 0, 0, style.flat and 0 or 1)
+	end
+	if f.text then
+		SetFontSafe(f.text, font, (f.fontSize or db.fontSize) + (style.bigger or 0), flags)
+		f.text:SetTextColor(unpack(style.text))
+		f.text:SetShadowColor(0, 0, 0, style.flat and 0 or 1)
+		f.text:SetShadowOffset(1, -1)
+		f.text:SetJustifyH(style.center and "CENTER" or "LEFT")
+	end
+	if f.portrait then
+		local border = style.border[4] > 0.5 and style.border or style.accent or { 0.85, 0.68, 0.32 }
+		f.portrait:SetBackdropBorderColor(border[1], border[2], border[3], 1)
+	end
+end
+
 -- Журнал последних событий очереди в ChorusDB.trace: по нему видно, почему реплика не прозвучала
 local function Trace(text)
 	if not db then return end
@@ -241,29 +330,15 @@ local function CreateSubtitle()
 	local f = CreateFrame("Frame", "ChorusSubtitle", UIParent, "BackdropTemplate")
 	f:SetSize(db.width, db.height)
 	f:SetFrameStrata("MEDIUM")
-	f:SetBackdrop({
-		bgFile = "Interface\\Buttons\\WHITE8x8",
-		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
-		edgeSize = 14,
-		insets = { left = 3, right = 3, top = 3, bottom = 3 },
-	})
-	f:SetBackdropColor(0.05, 0.04, 0.03, 0.88)
-	f:SetBackdropBorderColor(0.85, 0.68, 0.32, 1)
 
-	-- Мягкая подсветка сверху и тонкая линия под заголовком
+	-- Мягкая подсветка сверху и тонкая линия под заголовком; цвета задаёт стиль (ApplyStyle)
 	f.shine = f:CreateTexture(nil, "BACKGROUND", nil, 1)
 	f.shine:SetPoint("TOPLEFT", 4, -4)
 	f.shine:SetPoint("TOPRIGHT", -4, -4)
 	f.shine:SetHeight(24)
 	f.shine:SetColorTexture(1, 1, 1, 1)
-	if f.shine.SetGradient and CreateColor then
-		f.shine:SetGradient("VERTICAL", CreateColor(0.85, 0.68, 0.32, 0), CreateColor(0.85, 0.68, 0.32, 0.22))
-	else
-		f.shine:SetColorTexture(0.85, 0.68, 0.32, 0.1)
-	end
 	f.line = f:CreateTexture(nil, "ARTWORK")
 	f.line:SetHeight(1)
-	f.line:SetColorTexture(0.85, 0.68, 0.32, 0.45)
 	f:SetClampedToScreen(true)
 	f:SetMovable(true)
 	f:EnableMouse(true)
@@ -402,8 +477,7 @@ local function CreateSubtitle()
 	f.text:SetPoint("BOTTOMRIGHT", -12, 6)
 	f.text:SetJustifyH("LEFT")
 	f.text:SetJustifyV("MIDDLE")
-	local font, _, flags = f.text:GetFont()
-	if font then f.text:SetFont(font, db.fontSize, flags) end
+	ApplyStyle(f)
 
 	f:Hide()
 	return f
@@ -411,6 +485,7 @@ end
 
 -- Применяет сохранённые размеры, положение и шрифт к окну субтитров
 local function ApplyLayout()
+	if previewHook then previewHook() end
 	if not subtitle then return end
 	subtitle:SetSize(db.width, db.height)
 	subtitle:ClearAllPoints()
@@ -419,8 +494,7 @@ local function ApplyLayout()
 	else
 		subtitle:SetPoint("BOTTOM", UIParent, "BOTTOM", 0, 260)
 	end
-	local font, _, flags = subtitle.text:GetFont()
-	if font then subtitle.text:SetFont(font, db.fontSize, flags) end
+	ApplyStyle(subtitle)
 	SetPortrait(current and current.key or (queue[1] and queue[1].key), current ~= nil, true)
 end
 
@@ -1635,7 +1709,7 @@ commands.preset = function(arg)
 end
 
 -- Окно настроек с вкладками: в каждой одна колонка, окно помещается в экран небольшой высоты (Steam Deck)
-local CONFIG_TABS = { "Озвучка", "Звук и голос", "Субтитры", "Прочее" }
+local CONFIG_TABS = { "Озвучка", "Звук и голос", "Внешний вид", "Прочее" }
 
 local function CreateConfig()
 	local f = CreateFrame("Frame", "ChorusConfig", UIParent, "BasicFrameTemplateWithInset")
@@ -1937,8 +2011,123 @@ local function CreateConfig()
 	Slider("Скорость", -10, 10, 1,
 		function() return db.ttsRate end, function(value) db.ttsRate = value end)
 
-	-- Вкладка 3: окно субтитров
+	-- Вкладка 3: внешний вид окна субтитров
 	pages[3] = Page()
+	-- Превью: копия окна субтитров в выбранном стиле, с вашим персонажем на портрете
+	local preview = CreateFrame("Frame", nil, page, "BackdropTemplate")
+	local PREVIEW_H = 92
+	preview:SetPoint("TOPLEFT", X, y)
+	preview:SetSize(WIDTH, PREVIEW_H)
+	preview.shine = preview:CreateTexture(nil, "BACKGROUND", nil, 1)
+	preview.shine:SetPoint("TOPLEFT", 4, -4)
+	preview.shine:SetPoint("TOPRIGHT", -4, -4)
+	preview.shine:SetHeight(24)
+	preview.shine:SetColorTexture(1, 1, 1, 1)
+	preview.line = preview:CreateTexture(nil, "ARTWORK")
+	preview.line:SetHeight(1)
+	preview.title = preview:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+	preview.title:SetJustifyH("LEFT")
+	preview.title:SetWordWrap(false)
+	preview.text = preview:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+	preview.text:SetJustifyV("MIDDLE")
+	preview.portrait = CreateFrame("Frame", nil, preview, "BackdropTemplate")
+	preview.portrait:SetPoint("TOPLEFT", 7, -7)
+	preview.portrait:SetPoint("BOTTOMLEFT", 7, 7)
+	preview.portrait:SetWidth(PREVIEW_H - 14)
+	preview.portrait:SetBackdrop({
+		bgFile = "Interface\\Buttons\\WHITE8x8",
+		edgeFile = "Interface\\Tooltips\\UI-Tooltip-Border",
+		edgeSize = 12,
+		insets = { left = 2, right = 2, top = 2, bottom = 2 },
+	})
+	preview.portrait:SetBackdropColor(0.12, 0.1, 0.08, 1)
+	preview.model = CreateFrame("PlayerModel", nil, preview.portrait)
+	preview.model:SetPoint("TOPLEFT", 3, -3)
+	preview.model:SetPoint("BOTTOMRIGHT", -3, 3)
+	preview.model:SetScript("OnAnimFinished", function(self) self:SetAnimation(60) end)
+	preview:SetScript("OnShow", function()
+		pcall(function()
+			preview.model:SetUnit("player")
+			preview.model:SetPortraitZoom(0.85)
+			preview.model:SetAnimation(60)
+		end)
+	end)
+	preview.title:SetText((UnitName("player") or "Герой") .. ": Тени над Кель'Таласом")
+	preview.text:SetText("Солнечный колодец снова горит, но Бездна не дремлет. Возьми это письмо и отнеси его Лор'темару.")
+	function preview.Refresh()
+		ApplyStyle(preview)
+		local shown = db.portrait and true or false
+		preview.portrait:SetShown(shown)
+		local left = shown and (PREVIEW_H - 14 + 18) or 14
+		preview.title:ClearAllPoints()
+		preview.title:SetPoint("TOPLEFT", left, -10)
+		preview.title:SetPoint("RIGHT", -12, 0)
+		preview.line:ClearAllPoints()
+		preview.line:SetPoint("TOPLEFT", left, -28)
+		preview.line:SetPoint("TOPRIGHT", -12, -28)
+		preview.text:ClearAllPoints()
+		preview.text:SetPoint("TOPLEFT", left, -32)
+		preview.text:SetPoint("BOTTOMRIGHT", -14, 8)
+	end
+	previewHook = preview.Refresh
+	refreshers[#refreshers + 1] = preview.Refresh
+	y = y - PREVIEW_H - 6
+	Note("Так выглядит окно. Размер шрифта настоящий, высота окна здесь своя.")
+
+	Header("Стиль")
+	-- Карточки стилей: каждая нарисована в своём стиле, выбранная обведена золотом
+	local styleCards = {}
+	do
+		local gap, height = 6, 30
+		local width = (WIDTH - gap * (#STYLES - 1)) / #STYLES
+		for index, style in ipairs(STYLES) do
+			local card = CreateFrame("Button", nil, page, "BackdropTemplate")
+			card:SetSize(width, height)
+			card:SetPoint("TOPLEFT", X + (index - 1) * (width + gap), y - 2)
+			card.title = card:CreateFontString(nil, "ARTWORK", "GameFontNormal")
+			card.title:SetPoint("CENTER", 0, 0)
+			card.title:SetText(style.name)
+			card.shine = card:CreateTexture(nil, "BACKGROUND", nil, 1)
+			card.shine:SetPoint("TOPLEFT", 3, -3)
+			card.shine:SetPoint("TOPRIGHT", -3, -3)
+			card.shine:SetHeight(12)
+			card.shine:SetColorTexture(1, 1, 1, 1)
+			-- В «Кино» нет фона: подкладка, чтобы карточку было видно
+			card.under = card:CreateTexture(nil, "BACKGROUND", nil, -1)
+			card.under:SetAllPoints()
+			card.under:SetColorTexture(0.25, 0.25, 0.3, style.bg[4] == 0 and 0.6 or 0)
+			card.ring = CreateFrame("Frame", nil, card, "BackdropTemplate")
+			card.ring:SetPoint("TOPLEFT", -3, 3)
+			card.ring:SetPoint("BOTTOMRIGHT", 3, -3)
+			card.ring:SetBackdrop({ edgeFile = "Interface\\Buttons\\WHITE8x8", edgeSize = 2 })
+			card.ring:SetBackdropBorderColor(1, 0.82, 0.2, 1)
+			local glow = card:CreateTexture(nil, "HIGHLIGHT")
+			glow:SetAllPoints()
+			glow:SetColorTexture(1, 1, 1, 0.08)
+			card:SetScript("OnClick", function()
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+				db.style = style.id
+				ApplyLayout()
+				RefreshAll()
+			end)
+			styleCards[index] = card
+		end
+		y = y - height - 10
+	end
+	refreshers[#refreshers + 1] = function()
+		for index, card in ipairs(styleCards) do
+			ApplyStyle(card, STYLES[index].id)
+			card.ring:SetShown(db.style == STYLES[index].id)
+		end
+	end
+	Cycle("Шрифт", function() return (FONTS[db.font] or FONTS[1]).name end, function()
+		db.font = (db.font or 1) % #FONTS + 1
+		ApplyLayout()
+	end, "Шрифт заголовка и текста субтитров.")
+	Slider("Плотность фона", 0, 100, 5,
+		function() return db.bgAlpha or 100 end, function(value) db.bgAlpha = value; ApplyLayout() end, "%",
+		"0 - только текст без фона, 100 - фон как задумано стилем.")
+
 	Header("Окно субтитров")
 	Check("Показывать субтитры", "subtitles", function(on) if not on and subtitle then subtitle:Hide() end end)
 	Check("Портрет говорящего", "portrait", function() ApplyLayout() end)
