@@ -67,8 +67,16 @@ meta = {'changelog': notes, 'changelogType': 'markdown', 'displayName': f\"{name
 if kind == 'pack':
     meta['relations'] = {'projects': [{'slug': core, 'type': 'requiredDependency'}]}
 print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv")
-    curl -fsS -H "X-Api-Token: $CF_API_TOKEN" -F "metadata=$meta" -F "file=@$zip" \
-        "https://wow.curseforge.com/api/projects/$pid/upload-file" && echo && echo "CurseForge: загружено"
+    upload() { curl -sS -w '\n%{http_code}' -H "X-Api-Token: $CF_API_TOKEN" -F "metadata=$1" -F "file=@$zip" \
+        "https://wow.curseforge.com/api/projects/$pid/upload-file"; }
+    resp=$(upload "$meta")
+    # Ядро на модерации ещё нельзя указать зависимостью (ошибка 1018): грузим без неё, в .toc она всё равно есть
+    if [[ "$resp" == *'"errorCode":1018'* ]]; then
+        echo "CurseForge: ядро пока недоступно как зависимость, загружаю без неё"
+        resp=$(upload "$(python3 -c "import json,sys; m=json.loads(sys.argv[1]); m.pop('relations',None); print(json.dumps(m))" "$meta")")
+    fi
+    [[ "${resp##*$'\n'}" == 200 ]] || { echo "CurseForge: ошибка ${resp}"; exit 1; }
+    echo "CurseForge: загружено ${resp%$'\n'*}"
 else
     echo "CurseForge: пропущено (нет CF_API_TOKEN или $pid_var в .release.env)"
 fi

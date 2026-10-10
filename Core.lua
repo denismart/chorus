@@ -1580,13 +1580,13 @@ end
 
 -- Готовые наборы: меняют только то, что и когда читать («Максимум» включает ещё синтез и приглушение музыки)
 local PRESETS = {
-	{ id = "full", name = "Полная озвучка", tip = "Задания читаются сами (взятие, сдача, «не выполнено»), книги и письма тоже. Обычные диалоги не читаются.",
+	{ id = "full", name = "Полная озвучка", short = "задания, книги, письма", icon = "Interface\\Icons\\INV_Misc_Book_09", tip = "Задания читаются сами (взятие, сдача, «не выполнено»), книги и письма тоже. Обычные диалоги не читаются.",
 		set = { autoQuest = true, questButton = true, complete = true, progress = true, gossip = false, books = true, mail = true, waitNpc = true } },
-	{ id = "manual", name = "Только по кнопке", tip = "Само ничего не читается: задание звучит по кнопке «Озвучить» в окне задания или в журнале. Книги и письма молчат, но собираются в библиотеку.",
+	{ id = "manual", name = "Только по кнопке", short = "само ничего не читает", icon = "Interface\\Icons\\Spell_Holy_Silence", tip = "Само ничего не читается: задание звучит по кнопке «Озвучить» в окне задания или в журнале. Книги и письма молчат, но собираются в библиотеку.",
 		set = { autoQuest = false, questButton = true, gossip = false, books = false, mail = false } },
-	{ id = "quests", name = "Только задания", tip = "Задания читаются сами, книги, письма и диалоги - нет.",
+	{ id = "quests", name = "Только задания", short = "без книг и писем", icon = "Interface\\Icons\\INV_Misc_Map_01", tip = "Задания читаются сами, книги, письма и диалоги - нет.",
 		set = { autoQuest = true, questButton = true, complete = true, progress = true, gossip = false, books = false, mail = false } },
-	{ id = "max", name = "Максимум", tip = "Читается всё, включая обычные диалоги NPC. Где нет готовой озвучки - синтез речи. Приглушаются и голоса вокруг, и музыка.",
+	{ id = "max", name = "Максимум", short = "всё, где нет записи - синтез", icon = "Interface\\Icons\\Ability_Warrior_BattleShout", tip = "Читается всё, включая обычные диалоги NPC. Где нет готовой озвучки - синтез речи. Приглушаются и голоса вокруг, и музыка.",
 		set = { autoQuest = true, questButton = true, complete = true, progress = true, gossip = true, books = true, mail = true, waitNpc = true, tts = true, duck = true, duckMusic = true } },
 }
 
@@ -1621,7 +1621,7 @@ local CONFIG_TABS = { "Озвучка", "Звук и голос", "Субтит�
 
 local function CreateConfig()
 	local f = CreateFrame("Frame", "ChorusConfig", UIParent, "BasicFrameTemplateWithInset")
-	f:SetSize(460, 540)
+	f:SetSize(460, 566)
 	f:SetPoint("CENTER")
 	f:SetFrameStrata("DIALOG")
 	f:SetMovable(true)
@@ -1633,6 +1633,8 @@ local function CreateConfig()
 	tinsert(UISpecialFrames, "ChorusConfig")
 	f:SetToplevel(true)
 	local version = C_AddOns and C_AddOns.GetAddOnMetadata and C_AddOns.GetAddOnMetadata(addonName, "Version")
+	-- Копия из репозитория без сборки: вместо номера заглушка упаковщика
+	if version and version:find("@", 1, true) then version = nil end
 	if f.TitleText then f.TitleText:SetText(version and ("Chorus %s: настройки"):format(version) or "Chorus: настройки") end
 
 	local refreshers = {}
@@ -1795,28 +1797,61 @@ local function CreateConfig()
 	masterLine:SetColorTexture(0.85, 0.68, 0.32, 0.6)
 	y = -46
 	Header("Готовые наборы")
-	local presetButtons = {}
+	-- Карточки 2x2: иконка, название и короткая подпись; выбранный набор в золотой рамке
+	local presetCards = {}
+	local presetNote = page:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+	presetNote:SetPoint("TOPRIGHT", page, "TOPLEFT", X + WIDTH, y + 22)
 	do
-		local gap = 6
-		local width = (WIDTH - gap * (#PRESETS - 1)) / #PRESETS
+		local gap, height = 8, 36
+		local width = (WIDTH - gap) / 2
 		for index, preset in ipairs(PRESETS) do
-			local button = CreateFrame("Button", nil, page, "UIPanelButtonTemplate")
-			button:SetSize(width, 22)
-			button:SetPoint("TOPLEFT", X + (index - 1) * (width + gap), y)
-			button:SetText(preset.name)
-			local label = button:GetFontString()
-			if label then label:SetFontObject("GameFontHighlightSmall") end
-			button:SetScript("OnClick", function() ApplyPreset(preset); RefreshAll() end)
-			Tooltip(button, preset.tip)
-			presetButtons[index] = button
+			local card = CreateFrame("Button", nil, page, "BackdropTemplate")
+			card:SetSize(width, height)
+			card:SetPoint("TOPLEFT", X + (index - 1) % 2 * (width + gap), y - math.floor((index - 1) / 2) * (height + gap))
+			card:SetBackdrop({ bgFile = "Interface\\Buttons\\WHITE8X8", edgeFile = "Interface\\Buttons\\WHITE8X8", edgeSize = 1 })
+			local icon = card:CreateTexture(nil, "ARTWORK")
+			icon:SetSize(height - 8, height - 8)
+			icon:SetPoint("LEFT", 4, 0)
+			icon:SetTexture(preset.icon)
+			icon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+			local title = card:CreateFontString(nil, "ARTWORK", "GameFontHighlight")
+			title:SetPoint("TOPLEFT", icon, "TOPRIGHT", 7, -1)
+			title:SetText(preset.name)
+			local short = card:CreateFontString(nil, "ARTWORK", "GameFontDisableSmall")
+			short:SetPoint("BOTTOMLEFT", icon, "BOTTOMRIGHT", 7, 1)
+			short:SetPoint("RIGHT", -6, 0)
+			short:SetJustifyH("LEFT")
+			short:SetWordWrap(false)
+			short:SetText(preset.short)
+			local glow = card:CreateTexture(nil, "HIGHLIGHT")
+			glow:SetPoint("TOPLEFT", 1, -1)
+			glow:SetPoint("BOTTOMRIGHT", -1, 1)
+			glow:SetColorTexture(1, 0.82, 0.3, 0.1)
+			function card.Paint(active)
+				if active then
+					card:SetBackdropColor(0.85, 0.68, 0.32, 0.2)
+					card:SetBackdropBorderColor(1, 0.82, 0.3, 0.95)
+					title:SetTextColor(1, 0.82, 0)
+				else
+					card:SetBackdropColor(0, 0, 0, 0.35)
+					card:SetBackdropBorderColor(0.55, 0.45, 0.3, 0.6)
+					title:SetTextColor(1, 1, 1)
+				end
+			end
+			card:SetScript("OnClick", function()
+				PlaySound(SOUNDKIT.IG_MAINMENU_OPTION_CHECKBOX_ON)
+				ApplyPreset(preset)
+				RefreshAll()
+			end)
+			Tooltip(card, preset.tip)
+			presetCards[index] = card
 		end
-		y = y - 28
+		y = y - 2 * height - gap - 6
 	end
-	local presetNote = Note("")
 	refreshers[#refreshers + 1] = function()
 		local active = CurrentPreset()
-		presetNote:SetText(active and ("Сейчас: |cffffd100" .. active.name .. "|r") or "Сейчас: свои настройки")
-		for index, button in ipairs(presetButtons) do button:SetEnabled(PRESETS[index] ~= active) end
+		presetNote:SetText(active and "" or "сейчас: свои настройки")
+		for index, card in ipairs(presetCards) do card.Paint(PRESETS[index] == active) end
 	end
 	Header("Что читать")
 	Check("Читать задания автоматически", "autoQuest", nil, "Выключите, чтобы задания звучали только по кнопке «Озвучить» в окне задания.")
