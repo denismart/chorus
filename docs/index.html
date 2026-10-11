@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chorus Voice Samples</title>
+<meta name="description" content="Listen to Chorus: AI voice-over for World of Warcraft quests, in Russian and English.">
+<link rel="icon" href="icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #120e0a; --panel: #1d1712; --panel-2: #241c15; --line: #3a2e20;
+    --gold: #deb25c; --gold-soft: #f0d696; --text: #e8e0d2; --muted: #a59a88;
+  }
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+      --bg: #f5efe4; --panel: #fffaf1; --panel-2: #f3e9d6; --line: #dccaa7;
+      --gold: #9a6b16; --gold-soft: #7a5210; --text: #2b2318; --muted: #6f6352;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #120e0a; --panel: #1d1712; --panel-2: #241c15; --line: #3a2e20;
+    --gold: #deb25c; --gold-soft: #f0d696; --text: #e8e0d2; --muted: #a59a88;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 16px/1.6 Inter, system-ui, sans-serif; }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 32px 16px 64px; }
+  header { display: flex; gap: 16px; align-items: center; }
+  header img { width: 72px; height: 72px; border-radius: 12px; border: 1px solid var(--gold); }
+  h1 { font-family: Cinzel, Georgia, serif; color: var(--gold-soft); font-size: 34px; line-height: 1.1; margin: 0; letter-spacing: .5px; }
+  .tagline { color: var(--muted); margin: 4px 0 0; }
+  .bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between; margin: 28px 0 18px; }
+  .lang { display: inline-flex; border: 1px solid var(--line); border-radius: 999px; padding: 3px; background: var(--panel); }
+  .lang button { border: 0; background: none; color: var(--muted); font: 600 14px Inter, sans-serif; padding: 7px 16px; border-radius: 999px; cursor: pointer; }
+  .lang button[aria-pressed="true"] { background: var(--gold); color: #1a130b; }
+  .note { color: var(--muted); font-size: 14px; }
+  .grid { display: grid; gap: 14px; }
+  .card { background: linear-gradient(180deg, var(--panel-2), var(--panel)); border: 1px solid var(--line); border-radius: 14px; padding: 16px 18px; }
+  .card.playing { border-color: var(--gold); }
+  .top { display: flex; gap: 14px; align-items: center; }
+  .play { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--gold); background: none; color: var(--gold); cursor: pointer; display: grid; place-items: center; }
+  .play:hover { background: color-mix(in srgb, var(--gold) 14%, transparent); }
+  .play svg { width: 18px; height: 18px; fill: currentColor; }
+  .who { min-width: 0; }
+  .npc { font-weight: 600; color: var(--gold-soft); }
+  .quest { color: var(--muted); font-size: 14px; }
+  .kind { margin-left: auto; flex: none; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 10px; }
+  .progress { height: 3px; background: var(--line); border-radius: 3px; margin: 12px 0 0; overflow: hidden; }
+  .progress i { display: block; height: 100%; width: 0; background: var(--gold); }
+  .text { margin: 12px 0 0; color: var(--text); font-size: 15px; white-space: pre-line; }
+  footer { margin-top: 36px; display: flex; flex-wrap: wrap; gap: 10px; }
+  .btn { display: inline-block; text-decoration: none; color: var(--gold); border: 1px solid var(--gold); border-radius: 10px; padding: 9px 16px; font-weight: 600; font-size: 14px; }
+  .btn.primary { background: var(--gold); color: #1a130b; }
+  .fine { color: var(--muted); font-size: 13px; margin-top: 18px; }
+  @media (max-width: 520px) { h1 { font-size: 26px; } .kind { display: none; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="icon.png" alt="">
+    <div>
+      <h1>Chorus</h1>
+      <p class="tagline" data-i18n="tagline">Every NPC speaks in their own voice. Listen to real quest lines from the voice packs.</p>
+    </div>
+  </header>
+  <div class="bar">
+    <div class="lang" role="group" aria-label="Language">
+      <button type="button" data-lang="en" aria-pressed="true">English</button>
+      <button type="button" data-lang="ru" aria-pressed="false">Русский</button>
+    </div>
+    <span class="note" data-i18n="note">Midnight quests · voices cloned from in-game recordings</span>
+  </div>
+  <div class="grid" id="list"></div>
+  <footer>
+    <a class="btn primary" href="https://www.curseforge.com/wow/addons/chorus" data-i18n="core">Get Chorus on CurseForge</a>
+    <a class="btn" href="https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack" data-i18n="pack">Russian voice pack</a>
+  </footer>
+  <p class="fine" data-i18n="fine">AI-generated voice-over, not official Blizzard voice acting. World of Warcraft and its characters are property of Blizzard Entertainment.</p>
+</div>
+<script>
+  const I18N = {
+    en: { tagline: "Every NPC speaks in their own voice. Listen to real quest lines from the voice packs.",
+          note: "Midnight quests · voices cloned from in-game recordings", core: "Get Chorus on CurseForge", pack: "Russian voice pack",
+          fine: "AI-generated voice-over, not official Blizzard voice acting. World of Warcraft and its characters are property of Blizzard Entertainment.",
+          accept: "accept", complete: "turn-in", progress: "progress" },
+    ru: { tagline: "Каждый NPC говорит своим голосом. Послушайте настоящие реплики заданий из пакетов озвучки.",
+          note: "Задания Midnight · голоса клонированы по записям из игры", core: "Chorus на CurseForge", pack: "Русская озвучка",
+          fine: "Озвучка создана нейросетью и не является официальной озвучкой Blizzard. World of Warcraft и его персонажи принадлежат Blizzard Entertainment.",
+          accept: "взятие", complete: "сдача", progress: "ход" }
+  };
+  const PLAY = '<svg viewBox="0 0 24 24"><path d="M7 4.5v15l13-7.5z"/></svg>';
+  const PAUSE = '<svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg>';
+  let lang = "en", samples = [], audio = new Audio(), playingKey = null;
+  // Сохранённый выбор, иначе язык браузера
+  let saved = null;
+  try { saved = localStorage.getItem("chorus-lang"); } catch (e) {}
+  lang = saved === "ru" || saved === "en" ? saved : ((navigator.language || "").startsWith("ru") ? "ru" : "en");
+
+  function render() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll("[data-i18n]").forEach(el => el.textContent = I18N[lang][el.dataset.i18n]);
+    document.querySelectorAll(".lang button").forEach(b => b.setAttribute("aria-pressed", b.dataset.lang === lang));
+    const list = document.getElementById("list");
+    list.innerHTML = "";
+    for (const s of samples) {
+      const d = s[lang];
+      const card = document.createElement("article");
+      card.className = "card"; card.dataset.key = s.key;
+      card.innerHTML = `<div class="top"><button class="play" type="button" aria-label="Play">${PLAY}</button>
+        <div class="who"><div class="npc"></div><div class="quest"></div></div><span class="kind"></span></div>
+        <div class="progress"><i></i></div><p class="text"></p>`;
+      card.querySelector(".npc").textContent = d.npc;
+      card.querySelector(".quest").textContent = d.title;
+      card.querySelector(".kind").textContent = I18N[lang][s.kind] || s.kind;
+      card.querySelector(".text").textContent = d.text;
+      card.querySelector(".play").onclick = () => toggle(s.key);
+      list.appendChild(card);
+    }
+    stop();
+  }
+  function stop() {
+    audio.pause(); playingKey = null;
+    document.querySelectorAll(".card").forEach(c => { c.classList.remove("playing"); c.querySelector(".play").innerHTML = PLAY; c.querySelector(".progress i").style.width = "0"; });
+  }
+  function toggle(key) {
+    if (playingKey === key) { stop(); return; }
+    stop();
+    audio.src = `samples/${key}-${lang}.mp3`;
+    audio.play().catch(() => {});
+    playingKey = key;
+    const card = document.querySelector(`.card[data-key="${key}"]`);
+    card.classList.add("playing"); card.querySelector(".play").innerHTML = PAUSE;
+  }
+  audio.addEventListener("timeupdate", () => {
+    const card = playingKey && document.querySelector(`.card[data-key="${playingKey}"]`);
+    if (card && audio.duration) card.querySelector(".progress i").style.width = (100 * audio.currentTime / audio.duration) + "%";
+  });
+  audio.addEventListener("ended", stop);
+  document.querySelectorAll(".lang button").forEach(b => b.onclick = () => {
+    lang = b.dataset.lang; try { localStorage.setItem("chorus-lang", lang); } catch (e) {} render();
+  });
+  fetch("samples/samples.json").then(r => r.json()).then(d => { samples = d; render(); });
+</script>
+</body>
+</html>

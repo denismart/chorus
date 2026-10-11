@@ -1,0 +1,114 @@
+[
+ {
+  "key": "q86641_accept",
+  "kind": "accept",
+  "ru": {
+   "npc": "Лор'темар Терон",
+   "title": "Старые шрамы",
+   "text": "Ну конечно, амани не могли не воспользоваться случаем, чтобы снова посягнуть на наши земли. Трусы. Нас обложили со всех сторон! Но эта земля принадлежит син'дорай, и ее никто у нас не отнимет. Ни сбрендившие растения, ни культ, ни Бездна – и тем более амани! Что бы они тут ни замышляли, с этим надо покончить. Сделай все возможное, чтобы расстроить их планы. Пусть улепетывают обратно в свой Зул'Аман, где им самое место."
+  },
+  "en": {
+   "npc": "Lor'themar Theron",
+   "title": "Old Scars",
+   "text": "Of course the Amani would use this moment to encroach, the cowards. We are beset on all sides! This land belongs to the sin'dorei, and I will not see it taken by anyone. Not by raging plants, not by a cult, not by the Void, and never by the Amani! Whatever they are doing over there, it must be stopped. Do whatever you can to disrupt them and send them scurrying back to Zul'Aman where they belong."
+  }
+ },
+ {
+  "key": "q86639_accept",
+  "kind": "accept",
+  "ru": {
+   "npc": "Леди Лиадрин",
+   "title": "Все что осталось",
+   "text": "Ты сам видишь, с чем нам здесь приходится иметь дело. Рунический камень Шан'дор помогает сдержать распространение этой мерзости дальше на север, но если этот светоцвет снова начнет разрастаться, я не уверена, что мы сможем его остановить. Я слышала мольбы о помощи от выживших, что до сих пор остаются в этих стенах. Мы должны отыскать их и вывести в безопасное место!"
+  },
+  "en": {
+   "npc": "Lady Liadrin",
+   "title": "What's Left",
+   "text": "You see what we have to contend with here. Runestone Shan'dor is helping stop the spread further north, but if this Lightbloom surges again, I don't know if we can halt it. I've heard cries for help from survivors still trapped within. We have to find them, and direct them to safety!"
+  }
+ },
+ {
+  "key": "q86543_accept",
+  "kind": "accept",
+  "ru": {
+   "npc": "Магистр Умбрий",
+   "title": "Терраса Магистров: Возвращение домой",
+   "text": "Нам известно, что в Буре Бездны лежит земля, куда можно попасть через портал. Если мы проберемся туда, то сможем дать Ксал'атат бой на ее территории. Я нашел ключ. Это реликвия, известная как Путеводная звезда сумерек. На протяжении столетий она открывала нам недостижимые пути в бесконечное неведомое. Если мои исследования верны, я смогу воспользоваться ею, чтобы открыть проход прямо в Бурю. Есть только одна проблема: она находится на Террасе Магистров. А сейчас я у них... не на самом хорошем счету."
+  },
+  "en": {
+   "npc": "Magister Umbric",
+   "title": "Magisters' Terrace: Homecoming",
+   "text": "We know there's land inside the Voidstorm, through its massive portal. If we can reach it, we can take the fight to Xal'atath. I have found the key. It is a relic known as the Cynosure of Twilight. For ages, it has mystified us by revealing unreachable pathways to infinite unknowns. My research tells me I can use it to open a path to the storm. There's just one problem: it's in Magisters' Terrace. And I'm not exactly... in their good graces, at the moment."
+  }
+ },
+ {
+  "key": "q86823_accept",
+  "kind": "accept",
+  "ru": {
+   "npc": "Эйтригг",
+   "title": "Темная Орда",
+   "text": "Я когда-то сам служил под началом Чернорука. Его сын Ренд был глупцом и сопливым трусом, который засел в пике Черной Горы, когда пал Молот Рока. Он заключил сделку с драконами, провозгласил себя вождем, а свою Темную Орду – \"истинной\" Ордой. Пф! Эта Темная Орда держится за идеалы прошлого, которое давно уже рассыпалось в прах. Сам Ренд умер несколько лет назад, но остается еще немало орков и огров, цепляющихся за сгнивший остов былой Темной Орды. Если они до сих пор не прозрели, их исправит только могила."
+  },
+  "en": {
+   "npc": "Eitrigg",
+   "title": "The Dark Horde",
+   "text": "I once served under Blackhand, long ago. His son Rend was a sniveling fool: a coward who bolstered himself in that Spire after Doomhammer was defeated. He made deals with dragons, called himself Warchief, and proclaimed his Dark Horde the \"true\" Horde. Pah! This Dark Horde embraces the ideals of a past long gone. Rend died years ago, but there are still orcs and ogres here who cling to the rotting husk that remains. If they haven't seen the truth by now, there is little hope for them but death."
+  }
+ },
+ {
+  "key": "q86734_complete",
+  "kind": "complete",
+  "ru": {
+   "npc": "Лор'темар Терон",
+   "title": "Дипломатия",
+   "text": "Среди нас есть несогласные с моим решением, но я не допущу, чтобы мы потеряли свой дом. Если мы временно вынуждены принимать у себя гостей, да будет так."
+  },
+  "en": {
+   "npc": "Lor'themar Theron",
+   "title": "Diplomacy",
+   "text": "There are those that will disagree with my decision. But I will not have us lose our home. If we must host temporary guests, so be it."
+  }
+ },
+ {
+  "key": "q86710_complete",
+  "kind": "complete",
+  "ru": {
+   "npc": "Леди Лиадрин",
+   "title": "Мы проведем черту здесь",
+   "text": "Я с некоторым облегчением восприняла известие о том, что Зул'джан не лидер амани. Вот только эта Зул'джарра может оказаться еще хуже. Хотя ладно. Нам нужно выйти за эти ворота и оценить, насколько серьезную угрозу для лесов Вечной Песни представляет Клинок."
+  },
+  "en": {
+   "npc": "Lady Liadrin",
+   "title": "The Line Must Be Drawn Here",
+   "text": "I find myself relieved to discover Zul'jan is not the leader of the Amani. But this \"Zul'jarra\" might be worse. No matter. We must get on the other side of that gate and assess the Twilight's Blade's threat to Eversong."
+  }
+ },
+ {
+  "key": "q86686_complete",
+  "kind": "complete",
+  "ru": {
+   "npc": "Леди Лиадрин",
+   "title": "Для Света чужих не бывает",
+   "text": "Жду не дождусь увидеть физиономию Лор'темара по моему возвращению. Уж в этот раз я заслужила не только его обычные попреки."
+  },
+  "en": {
+   "npc": "Lady Liadrin",
+   "title": "Light Indiscriminate",
+   "text": "I look forward to Lor'themar's expression when I report back. It's bound to be worth more than my inevitable reprimanding."
+  }
+ },
+ {
+  "key": "q86650_complete",
+  "kind": "complete",
+  "ru": {
+   "npc": "Лор'темар Терон",
+   "title": "Раскол",
+   "text": "Я бы с радостью примкнул к тебе, но у меня еще много дел здесь в Луносвете. Приказы ты получил. Будь на связи. Что до Аратора... Надеюсь, скоро он отыщется. Ану белоре дела'на, герой."
+  },
+  "en": {
+   "npc": "Lor'themar Theron",
+   "title": "Fractured",
+   "text": "Would that I could join you, but there is much still to do here in Silvermoon. You have your objectives. Keep in touch. As for Arator... I hope you find him soon. Anu belore dela'na."
+  }
+ }
+]
