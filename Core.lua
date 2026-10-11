@@ -200,7 +200,7 @@ end
 -- Окно субтитров
 ----------------------------------------------------------------------
 
-local StopAll, Skip, TogglePause, Restart, SetPortrait, OpenConfig, YieldToNpc, MarkProblem  -- объявлены ниже
+local StopAll, Skip, TogglePause, Restart, SetPortrait, OpenConfig, YieldToNpc, MarkProblem, OpenKeybindings  -- объявлены ниже
 
 -- Иконки кнопок: свои, золотые с тенью, в папке Icons
 local ICONS = {
@@ -1321,13 +1321,21 @@ end
 
 -- Говорящая голова: игра сообщает длительность реплики
 function handlers.TALKINGHEAD_REQUESTED()
-	local duration
+	local duration, gap = nil, 0
 	if C_TalkingHead and C_TalkingHead.GetCurrentLineInfo then
-		local ok, _, _, _, lineDuration = pcall(C_TalkingHead.GetCurrentLineInfo)
-		if ok then duration = Plain(lineDuration) end
+		local ok, _, _, vo, lineDuration, lineNumber, numLines = pcall(C_TalkingHead.GetCurrentLineInfo)
+		if ok then
+			-- Голова без звука (только текст) не мешает: ей не уступаем
+			vo = Plain(vo)
+			if type(vo) == "number" and vo <= 0 then return end
+			duration = Plain(lineDuration)
+			-- Между строками многострочной головы пауза: без запаса реплика стартовала бы в ней и обрывалась следующей строкой
+			local line, lines = Plain(lineNumber), Plain(numLines)
+			if type(line) == "number" and type(lines) == "number" and line < lines then gap = 2 end
+		end
 	end
 	hold.head = true
-	hold.headUntil = GetTime() + (tonumber(duration) or 12) + 1
+	hold.headUntil = GetTime() + (tonumber(duration) or 12) + 1 + gap
 	YieldToNpc()
 end
 
@@ -2222,6 +2230,8 @@ local function CreateConfig()
 	Buttons({ { "Открыть библиотеку", function() commands.lib() end } })
 	Header("Интерфейс")
 	Check("Кнопка у миникарты", "minimapButton", function() UpdateMinimapButton() end, "Левый щелчок - настройки, правый - библиотека. Кнопку можно перетащить по кругу.")
+	Buttons({ { "Горячие клавиши", function() OpenKeybindings() end,
+		"Открыть меню игры «Назначение клавиш», раздел Chorus: прочитать задание, пауза, стоп, следующая реплика, прочитать заново." } })
 	Header("Проверка")
 	Buttons({
 		{ "Прослушать пример", function() commands.test("1") end, "Прочитать случайное задание из пакета озвучки." },
@@ -2266,6 +2276,14 @@ end
 local function ToggleConfig()
 	config = config or CreateConfig()
 	config:SetShown(not config:IsShown())
+end
+
+-- Меню игры «Назначение клавиш»: там раздел Chorus с горячими клавишами из Bindings.xml
+function OpenKeybindings()
+	if config and config:IsShown() then config:Hide() end
+	if not (Settings and Settings.OpenToCategory and Settings.KEYBINDINGS_CATEGORY_ID and pcall(Settings.OpenToCategory, Settings.KEYBINDINGS_CATEGORY_ID)) then
+		print(PREFIX .. "горячие клавиши назначаются в меню игры: Настройки → Назначение клавиш → Модификации → Chorus.")
+	end
 end
 
 ----------------------------------------------------------------------
@@ -2622,6 +2640,41 @@ pcall(RegisterSettingsPage)
 -- Вызывается из меню аддонов у миникарты: левый щелчок - настройки, правый - библиотека
 function Chorus_OpenConfig(_, button)
 	if button == "RightButton" then ToggleLibrary() else ToggleConfig() end
+end
+
+-- Горячие клавиши (Bindings.xml): назначаются в меню игры «Назначение клавиш», раздел Chorus
+do
+	local ru = GetLocale() == "ruRU"
+	BINDING_HEADER_CHORUS = "Chorus"
+	BINDING_NAME_CHORUS_PLAYQUEST = ru and "Прочитать задание" or "Read quest"
+	BINDING_NAME_CHORUS_PAUSE = ru and "Пауза / продолжить" or "Pause / resume"
+	BINDING_NAME_CHORUS_STOP = ru and "Остановить" or "Stop"
+	BINDING_NAME_CHORUS_SKIP = ru and "Следующая реплика" or "Next line"
+	BINDING_NAME_CHORUS_RESTART = ru and "Прочитать заново" or "Replay"
+end
+
+-- Задание для клавиши «Прочитать задание»: открытое окно задания, иначе выбранное в открытом журнале
+local function BindingQuest()
+	if shownQuest then return shownQuest end
+	local logOpen = (QuestMapFrame and QuestMapFrame:IsVisible()) or (QuestLogPopupDetailFrame and QuestLogPopupDetailFrame:IsShown())
+	if logOpen and C_QuestLog and C_QuestLog.GetSelectedQuest then return LogQuestItem(C_QuestLog.GetSelectedQuest()) end
+end
+
+function Chorus_Binding(action)
+	if not db then return end
+	if action == "PLAYQUEST" then
+		-- Нет ни окна задания, ни журнала: повторяем последнюю реплику. Повторное нажатие останавливает (как кнопка «Озвучить»)
+		local item = BindingQuest() or lastPlayed
+		if item then PlayNow(item) end
+	elseif action == "PAUSE" then
+		TogglePause()
+	elseif action == "STOP" then
+		StopAll()
+	elseif action == "SKIP" then
+		Skip()
+	elseif action == "RESTART" then
+		if current or queue[1] then Restart() elseif lastPlayed then PlayNow(lastPlayed) end
+	end
 end
 
 SLASH_CHORUS1 = "/chorus"

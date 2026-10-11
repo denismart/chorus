@@ -22,7 +22,7 @@ if [[ "$kind" == core ]]; then
     [[ $dry == 1 || -z "$(git status --porcelain)" ]] || { echo "есть незакоммиченные изменения"; exit 1; }
     tmp="$(mktemp -d)"; mkdir "$tmp/Chorus"
     sed "s/@project-version@/$ver/" Chorus.toc > "$tmp/Chorus/Chorus.toc"
-    cp -R Core.lua LICENSE Icon.tga Icons "$tmp/Chorus/"
+    cp -R Core.lua Bindings.xml LICENSE Icon.tga Icons "$tmp/Chorus/"
     (cd "$tmp" && zip -qr - Chorus) > "$zip"; rm -r "$tmp"
     notes="$(awk -v v="## $ver" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md)"
 else

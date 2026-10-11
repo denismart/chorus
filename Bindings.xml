@@ -1,0 +1,7 @@
+<Bindings>
+	<Binding name="CHORUS_PLAYQUEST" header="CHORUS" category="ADDONS">Chorus_Binding("PLAYQUEST")</Binding>
+	<Binding name="CHORUS_PAUSE" category="ADDONS">Chorus_Binding("PAUSE")</Binding>
+	<Binding name="CHORUS_STOP" category="ADDONS">Chorus_Binding("STOP")</Binding>
+	<Binding name="CHORUS_SKIP" category="ADDONS">Chorus_Binding("SKIP")</Binding>
+	<Binding name="CHORUS_RESTART" category="ADDONS">Chorus_Binding("RESTART")</Binding>
+</Bindings>
