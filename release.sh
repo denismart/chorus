@@ -4,6 +4,7 @@
 #   ./release.sh pack <Пакет> <версия> [--dry-run]  пакет озвучки: zip собирается на ноутбуке (ssh hyperpc),
 #                                                   скачивается и выкладывается релизом <Пакет>-v<версия>
 # --dry-run: только собрать архив в .release/, ничего не публиковать.
+# RELEASE_TYPE=alpha|beta|release - тип файла на CurseForge (по умолчанию release).
 # CurseForge: если в .release.env заданы CF_API_TOKEN и CF_PROJECT_<имя> (например CF_PROJECT_Chorus),
 # архив загружается и туда. Пример — .release.env.example.
 set -euo pipefail
@@ -26,9 +27,15 @@ if [[ "$kind" == core ]]; then
     notes="$(awk -v v="## $ver" '$0==v{f=1;next} /^## /{f=0} f' CHANGELOG.md)"
 else
     tag="$name-v$ver"
-    remote="C:\\wow-voice\\release"
+    # Где собран пакет: по умолчанию ноутбук (ssh hyperpc, C:\wow-voice\addon). Для пакета можно задать в .release.env
+    # PACK_SSH_<имя> (аргументы ssh, например "-J bw winps") и PACK_DIR_<имя> (папка, где лежит папка пакета)
+    ssh_var="PACK_SSH_${name}"; dir_var="PACK_DIR_${name}"
+    read -r -a pack_ssh <<< "${!ssh_var:-hyperpc}"
+    src_dir="${!dir_var:-C:\\wow-voice\\addon}"
+    drive="${src_dir%%:*}"
+    remote="$drive:\\wow-voice\\release"
     # Копия пакета с версией в .toc (UTF-8 без BOM) и zip встроенным в Windows tar
-    ps="\$ProgressPreference='SilentlyContinue'; \$s='C:\\wow-voice\\addon\\$name'; \$r='$remote'; \$d=\"\$r\\$name\"
+    ps="\$ProgressPreference='SilentlyContinue'; \$s='$src_dir\\$name'; \$r='$remote'; \$d=\"\$r\\$name\"
 New-Item -ItemType Directory -Force \$r | Out-Null
 robocopy \$s \$d /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
 \$toc=\"\$d\\$name.toc\"; \$t=(Get-Content \$toc -Encoding UTF8) -replace '^## Version: .*', '## Version: $ver'
@@ -37,9 +44,10 @@ robocopy \$s \$d /MIR /NFL /NDL /NJH /NJS /NP | Out-Null
 tar.exe -a -c -f \$z -C \$r $name
 '{0:N0} MB' -f ((Get-Item \$z).Length/1MB)"
     enc=$(printf '%s' "$ps" | iconv -f UTF-8 -t UTF-16LE | base64 | tr -d '\n')
-    echo "собираю $name на ноутбуке: $(ssh -o BatchMode=yes hyperpc "powershell -NoProfile -NonInteractive -EncodedCommand $enc" | tr -d '\r')"
-    if [[ $dry == 1 ]]; then echo "dry-run: архив остался на ноутбуке ($remote\\$name-v$ver.zip)"; exit 0; fi
-    scp -q "hyperpc:C:/wow-voice/release/$name-v$ver.zip" "$zip"
+    echo "собираю $name (${pack_ssh[*]}, $src_dir): $(ssh -o BatchMode=yes "${pack_ssh[@]}" "powershell -NoProfile -NonInteractive -EncodedCommand $enc" | tr -d '\r')"
+    if [[ $dry == 1 ]]; then echo "dry-run: архив остался на машине ($remote\\$name-v$ver.zip)"; exit 0; fi
+    # scp: те же аргументы, хост последним; путь Windows - с прямыми слэшами
+    scp -q "${pack_ssh[@]:0:${#pack_ssh[@]}-1}" "${pack_ssh[${#pack_ssh[@]}-1]}:$drive:/wow-voice/release/$name-v$ver.zip" "$zip"
     notes="Пакет озвучки $name, версия $ver. Требует аддон Chorus."
 fi
 echo "архив: $zip ($(du -h "$zip" | cut -f1))"
@@ -63,10 +71,10 @@ if [[ -n "${CF_API_TOKEN:-}" && -n "$pid" ]]; then
 import json, sys
 name, ver, kind, core, notes = sys.argv[1:6]
 meta = {'changelog': notes, 'changelogType': 'markdown', 'displayName': f\"{name.replace('_', ' ')} {ver}\",
-        'gameVersions': [int(x) for x in sys.argv[6].split(',')], 'releaseType': 'release'}
+        'gameVersions': [int(x) for x in sys.argv[6].split(',')], 'releaseType': sys.argv[7]}
 if kind == 'pack':
     meta['relations'] = {'projects': [{'slug': core, 'type': 'requiredDependency'}]}
-print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv")
+print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv" "${RELEASE_TYPE:-release}")
     upload() { curl -sS -w '\n%{http_code}' -H "X-Api-Token: $CF_API_TOKEN" -F "metadata=$1" -F "file=@$zip" \
         "https://wow.curseforge.com/api/projects/$pid/upload-file"; }
     resp=$(upload "$meta")
