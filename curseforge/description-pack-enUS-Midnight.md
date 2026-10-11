@@ -1,6 +1,6 @@
 # Chorus: English voice pack — Midnight
 
-English voice-over for **all Midnight quests**: 3,613 lines, 382 NPCs.
+English voice-over for **all Midnight quests**: 3,539 lines, 382 NPCs.
 
 **Requires [Chorus](https://www.curseforge.com/wow/addons/chorus)**: the core add-on that plays the audio. The CurseForge app installs it automatically.
 
@@ -16,7 +16,7 @@ Works with the **English game client** (enUS and enGB). Key characters speak in 
 
 # Chorus: английская озвучка Midnight
 
-Озвучка **всех заданий Midnight** на английском: 3613 реплик, 382 NPC. Работает с **английским клиентом игры**. Для русского клиента есть [русская озвучка](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack).
+Озвучка **всех заданий Midnight** на английском: 3539 реплик, 382 NPC. Работает с **английским клиентом игры**. Для русского клиента есть [русская озвучка](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack).
 
 **Нужен аддон [Chorus](https://www.curseforge.com/wow/addons/chorus)**: это ядро, которое проигрывает звук. Приложение CurseForge поставит его само.
 

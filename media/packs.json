@@ -14,6 +14,20 @@
   ]
  },
  {
+  "id": "midnight-en",
+  "title": "MIDNIGHT",
+  "icon": "media/packs/src/11-midnight-en.png",
+  "url": "https://www.curseforge.com/wow/addons/chorus-midnight-english-voice-pack",
+  "en": [
+   "English voice pack",
+   "3,539 lines · 382 NPCs"
+  ],
+  "ru": [
+   "Английская озвучка",
+   "3539 реплик · 382 NPC"
+  ]
+ },
+ {
   "id": "tww-ru",
   "title": "THE WAR WITHIN",
   "icon": "media/packs/src/10-the-war-within-ru.png",
@@ -24,20 +38,6 @@
   ],
   "ru": [
    "Русская озвучка",
-   "скоро"
-  ]
- },
- {
-  "id": "english",
-  "title": "ENGLISH",
-  "icon": "media/packs/src/base-arcane-en.png",
-  "url": null,
-  "en": [
-   "English voice packs",
-   "coming soon"
-  ],
-  "ru": [
-   "Английская озвучка",
    "скоро"
   ]
  }
