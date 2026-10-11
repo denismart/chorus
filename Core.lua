@@ -995,8 +995,13 @@ local function AnchorQuestButton()
 	questButton:SetFrameLevel(host:GetFrameLevel() + 20)
 	questButton:ClearAllPoints()
 	if anchor == QuestFrame then
-		-- Внизу окна по центру, между «Принять» и «Отказаться» («Отмена» и «Завершить»)
-		questButton:SetPoint("BOTTOM", anchor, "BOTTOM", 0, 4)
+		if QuestFrameRewardPanel and QuestFrameRewardPanel:IsShown() then
+			-- При сдаче «Завершить» слева, «Озвучить» справа
+			questButton:SetPoint("BOTTOMRIGHT", anchor, "BOTTOMRIGHT", -6, 4)
+		else
+			-- При получении задания — между «Принять» и «Отказаться»
+			questButton:SetPoint("BOTTOM", anchor, "BOTTOM", 0, 4)
+		end
 	else
 		questButton:SetPoint("BOTTOMRIGHT", anchor, "TOPRIGHT", 0, 4)
 	end
@@ -2282,7 +2287,7 @@ end
 function OpenKeybindings()
 	if config and config:IsShown() then config:Hide() end
 	if not (Settings and Settings.OpenToCategory and Settings.KEYBINDINGS_CATEGORY_ID and pcall(Settings.OpenToCategory, Settings.KEYBINDINGS_CATEGORY_ID)) then
-		print(PREFIX .. "горячие клавиши назначаются в меню игры: Настройки → Назначение клавиш → Модификации → Chorus.")
+		print(PREFIX .. "горячие клавиши назначаются в меню игры: Настройки → Назначение клавиш → Chorus.")
 	end
 end
 
@@ -2645,7 +2650,7 @@ end
 -- Горячие клавиши (Bindings.xml): назначаются в меню игры «Назначение клавиш», раздел Chorus
 do
 	local ru = GetLocale() == "ruRU"
-	BINDING_HEADER_CHORUS = "Chorus"
+	BINDING_HEADER_CHORUS = "|cffb780ffChorus|r"
 	BINDING_NAME_CHORUS_PLAYQUEST = ru and "Прочитать задание" or "Read quest"
 	BINDING_NAME_CHORUS_PAUSE = ru and "Пауза / продолжить" or "Pause / resume"
 	BINDING_NAME_CHORUS_STOP = ru and "Остановить" or "Stop"
