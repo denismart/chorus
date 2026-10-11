@@ -8,6 +8,8 @@ Works with the **Russian game client** (ruRU). Key characters speak in voices cl
 
 [![Listen to voice samples](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-en.png)](https://denismart.github.io/chorus/)
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Zh7WiwqqI_g" allowfullscreen></iframe>
+
 ---
 
 # Chorus: русская озвучка Midnight

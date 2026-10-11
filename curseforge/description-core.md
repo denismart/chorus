@@ -8,6 +8,8 @@ The voice-over is AI-generated and is not official Blizzard voice acting.
 
 [![Listen to voice samples](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-en.png)](https://denismart.github.io/chorus/)
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/Zh7WiwqqI_g" allowfullscreen></iframe>
+
 ## Voice packs
 
 `Chorus` is the core add-on and contains no audio by itself. Install a voice pack for your language and expansion:
