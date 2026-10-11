@@ -2,3 +2,4 @@
 *.zip
 .release/
 .release.env
+media/video/
