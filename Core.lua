@@ -31,6 +31,7 @@ local defaults = {
 	npcTail = 3,          -- сколько ещё ждать после реплики NPC: вдруг следом заговорит другой
 	preroll = 1.5,        -- задержка перед началом чтения, секунд
 	autoQuest = true,     -- читать задания сами (иначе только кнопкой «Озвучить» в окне задания)
+	playOn = "accept",    -- когда читать взятие и сдачу: "accept" - после принятия/сдачи, "open" - сразу при открытии окна
 	questButton = true,   -- кнопка «Озвучить» в окне задания
 	complete = true,      -- читать текст при сдаче задания
 	progress = true,      -- читать реплику NPC, когда пришёл с невыполненным заданием
@@ -712,7 +713,7 @@ local function Interrupt(resume)
 	Duck(false)
 	current, currentHandle = nil, nil
 	token = token + 1
-	table.insert(queue, 1, { key = item.key, text = item.text, title = item.title, npc = item.npc, book = item.book, lib = item.lib, manual = item.manual,
+	table.insert(queue, 1, { key = item.key, text = item.text, title = item.title, npc = item.npc, book = item.book, lib = item.lib, manual = item.manual, openFor = item.openFor,
 		resumeSeg = resume and item.segIndex or nil, yielded = item.yielded, pauses = item.pauses })
 end
 
@@ -835,7 +836,7 @@ local function Enqueue(item)
 	for _, queued in ipairs(queue) do
 		if queued.key == item.key then return end
 	end
-	queue[#queue + 1] = { key = item.key, text = item.text, title = item.title, npc = item.npc, book = item.book, lib = item.lib, manual = item.manual }
+	queue[#queue + 1] = { key = item.key, text = item.text, title = item.title, npc = item.npc, book = item.book, lib = item.lib, manual = item.manual, openFor = item.openFor }
 	if current then
 		UpdateTitle()
 	else
@@ -967,6 +968,17 @@ local function RecentlyPlayed(key)
 	return manualPlayed[key] and GetTime() - manualPlayed[key] < MANUAL_MEMORY
 end
 
+-- Режим «читать при открытии окна»: реплика звучит сразу и помечается прослушанной, чтобы после принятия
+-- или сдачи не повториться. questID запоминаем: если окно закроют, не приняв задание, чтение остановится
+local function PlayOnOpen(item, questID)
+	if not (item and db.enabled and db.autoQuest and db.playOn == "open") or RecentlyPlayed(item.key) then return end
+	if current and current.key == item.key then return end
+	StopAll()
+	hold.sayUntil = 0
+	manualPlayed[item.key] = GetTime()
+	Enqueue({ key = item.key, text = item.text, title = item.title, npc = item.npc, manual = true, openFor = questID })
+end
+
 -- Кнопка ставится внизу окна задания игры, а если его заменяет Immersion - над окном Immersion
 local function AnchorQuestButton()
 	local host, anchor
@@ -1091,6 +1103,16 @@ end
 function handlers.QUEST_FINISHED()
 	shownQuest = nil
 	if questButton then questButton:Hide() end
+	-- Окно закрыли, а задание не приняли и не сдали (QUEST_ACCEPTED/QUEST_TURNED_IN приходят раньше): замолкаем
+	local open = current and current.openFor
+	if open then
+		C_Timer.After(0.3, function()
+			if current and current.openFor == open and (pendingAccept[open] or pendingComplete[open]) then
+				Trace(("окно задания %d закрыто без принятия: стоп"):format(open))
+				StopAll()
+			end
+		end)
+	end
 end
 
 function handlers.QUEST_DETAIL()
@@ -1098,6 +1120,7 @@ function handlers.QUEST_DETAIL()
 	if not questID or questID == 0 then return end
 	pendingAccept[questID] = Remember(("q%d_accept"):format(questID), GetQuestText(), GetTitleText())
 	ShowQuestButton(pendingAccept[questID])
+	PlayOnOpen(pendingAccept[questID], questID)
 end
 
 local function QuestScene()
@@ -1144,6 +1167,7 @@ function handlers.QUEST_COMPLETE()
 	if not questID or questID == 0 then return end
 	pendingComplete[questID] = Remember(("q%d_complete"):format(questID), GetRewardText(), GetTitleText())
 	ShowQuestButton(pendingComplete[questID])
+	if db.complete then PlayOnOpen(pendingComplete[questID], questID) end
 end
 
 function handlers.QUEST_TURNED_IN(questID)
@@ -1756,7 +1780,7 @@ local CONFIG_TABS = { "Озвучка", "Звук и голос", "Внешни�
 
 local function CreateConfig()
 	local f = CreateFrame("Frame", "ChorusConfig", UIParent, "BasicFrameTemplateWithInset")
-	f:SetSize(460, 566)
+	f:SetSize(460, 592)
 	f:SetPoint("CENTER")
 	f:SetFrameStrata("DIALOG")
 	f:SetMovable(true)
@@ -1993,6 +2017,9 @@ local function CreateConfig()
 	refreshers[#refreshers + 1] = RefreshPresets
 	Header("Что читать")
 	Check("Читать задания автоматически", "autoQuest", nil, "Выключите, чтобы задания звучали только по кнопке «Озвучить» в окне задания.")
+	Cycle("Когда читать задание", function() return db.playOn == "open" and "при открытии окна" or "после принятия" end, function()
+		db.playOn = db.playOn == "open" and "accept" or "open"
+	end, "После принятия - текст звучит, когда вы взяли или сдали задание. При открытии окна - сразу, пока читаете его сами; если закрыть окно, не приняв задание, чтение остановится.")
 	Check("Кнопка «Озвучить» в окне задания и в журнале", "questButton", nil, "Прослушать текст сразу, не принимая задание, или ещё раз - уже взятое.")
 	Check("Текст при сдаче задания", "complete", nil, "После сдачи задания NPC читает текст из окна награды.")
 	Check("Реплика, если задание не выполнено", "progress", nil, "Когда вы пришли к NPC, не выполнив задание («Ну что, принёс?»).")
