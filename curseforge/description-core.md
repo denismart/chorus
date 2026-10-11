@@ -49,6 +49,8 @@ Chorus озвучивает задания World of Warcraft. Ключевые �
 
 [![Послушать примеры](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-ru.png)](https://denismart.github.io/chorus/)
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M9cRu3LsvAM" allowfullscreen></iframe>
+
 ## Пакеты озвучки
 
 `Chorus` — это ядро аддона, в нём самом звуков нет. Поставьте пакет озвучки для своего языка и дополнения:

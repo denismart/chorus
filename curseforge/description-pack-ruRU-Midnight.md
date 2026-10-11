@@ -22,6 +22,8 @@ Works with the **Russian game client** (ruRU). Key characters speak in voices cl
 
 [![Послушать примеры](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-ru.png)](https://denismart.github.io/chorus/)
 
+<iframe width="560" height="315" src="https://www.youtube.com/embed/M9cRu3LsvAM" allowfullscreen></iframe>
+
 Нашли неверное ударение или неподходящий голос? Напишите в комментариях или на [GitHub](https://github.com/denismart/chorus/issues/new/choose): задание, NPC и слово.
 
 *World of Warcraft, its characters and voices are property of Blizzard Entertainment. Free, non-commercial fan project not affiliated with Blizzard Entertainment.*
