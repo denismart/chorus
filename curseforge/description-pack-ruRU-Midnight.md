@@ -6,7 +6,11 @@ Russian voice-over for **all Midnight quests**: 2,999 lines, 317 NPCs, about 13 
 
 Works with the **Russian game client** (ruRU). Key characters speak in voices cloned from their in-game recordings; other NPCs use voices matching their race and gender. The voice-over is AI-generated and is not official Blizzard voice acting.
 
-[![Li# Chorus: русская озвучка Midnight
+[![Listen to voice samples](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-en.png)](https://denismart.github.io/chorus/)
+
+---
+
+# Chorus: русская озвучка Midnight
 
 Озвучка **всех заданий Midnight** на русском: 2999 реплик, 317 NPC, около 13 часов речи.
 
