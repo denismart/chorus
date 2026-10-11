@@ -4,3 +4,4 @@ ignore:
   - README.md
   - CHANGELOG.md
   - media
+  - docs
