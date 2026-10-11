@@ -1,6 +1,6 @@
 # Chorus: Russian voice pack — Midnight
 
-Russian voice-over for **all Midnight quests**: 2,999 lines, 317 NPCs, about 13 hours of speech.
+Russian voice-over for **all Midnight quests**: 2,998 lines, 308 NPCs, about 18 hours of speech.
 
 **Requires [Chorus](https://www.curseforge.com/wow/addons/chorus)**: the core add-on that plays the audio. The CurseForge app installs it automatically.
 
@@ -14,7 +14,7 @@ Works with the **Russian game client** (ruRU). Key characters speak in voices cl
 
 # Chorus: русская озвучка Midnight
 
-Озвучка **всех заданий Midnight** на русском: 2999 реплик, 317 NPC, около 13 часов речи.
+Озвучка **всех заданий Midnight** на русском: 2998 реплик, 308 NPC, около 18 часов речи.
 
 **Нужен аддон [Chorus](https://www.curseforge.com/wow/addons/chorus)**: это ядро, которое проигрывает звук. Приложение CurseForge поставит его само.
 
