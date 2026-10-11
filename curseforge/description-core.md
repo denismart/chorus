@@ -6,6 +6,8 @@ Chorus adds voice-over to World of Warcraft quests. Key characters read the ques
 
 The voice-over is AI-generated and is not official Blizzard voice acting.
 
+[![Listen to voice samples](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-en.png)](https://denismart.github.io/chorus/)
+
 ## Voice packs
 
 `Chorus` is the core add-on and contains no audio by itself. Install a voice pack for your language and expansion:
@@ -42,6 +44,8 @@ Found a wrong stress, a voice that doesn't fit, or a bug? Leave a comment or ope
 Chorus озвучивает задания World of Warcraft. Ключевые персонажи читают текст голосами, клонированными по их записям из игры: Лор'темар, Лиадрин, Аратор, Умбрий, Орвейна, Зул'джарра и многие другие. Остальные NPC говорят голосами своей расы и пола. Озвучивается **дословный текст задания**, а не пересказ.
 
 Озвучка создана нейросетью и не является официальной озвучкой Blizzard.
+
+[![Послушать примеры](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-ru.png)](https://denismart.github.io/chorus/)
 
 ## Пакеты озвучки
 
