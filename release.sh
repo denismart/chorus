@@ -63,7 +63,7 @@ if [[ -n "${CF_API_TOKEN:-}" && -n "$pid" ]]; then
 import json, sys
 name, ver, kind, core, notes = sys.argv[1:6]
 meta = {'changelog': notes, 'changelogType': 'markdown', 'displayName': f\"{name.replace('_', ' ')} {ver}\",
-        'gameVersions': [int(x) for x in sys.argv[6].split(',')], 'releaseType': 'beta'}
+        'gameVersions': [int(x) for x in sys.argv[6].split(',')], 'releaseType': 'release'}
 if kind == 'pack':
     meta['relations'] = {'projects': [{'slug': core, 'type': 'requiredDependency'}]}
 print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv")
