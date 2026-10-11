@@ -75,7 +75,7 @@ meta = {'changelog': notes, 'changelogType': 'markdown', 'displayName': f\"{name
 if kind == 'pack':
     meta['relations'] = {'projects': [{'slug': core, 'type': 'requiredDependency'}]}
 print(json.dumps(meta))" "$name" "$ver" "$kind" "${CF_CORE_SLUG:-chorus}" "${notes:-$name $ver}" "$gv" "${RELEASE_TYPE:-release}")
-    upload() { curl -sS -w '\n%{http_code}' -H "X-Api-Token: $CF_API_TOKEN" -F "metadata=$1" -F "file=@$zip" \
+    upload() { curl -sS -w '\n%{http_code}' -H "X-Api-Token: $CF_API_TOKEN" --form-string "metadata=$1" -F "file=@$zip" \
         "https://wow.curseforge.com/api/projects/$pid/upload-file"; }
     resp=$(upload "$meta")
     # Ядро на модерации ещё нельзя указать зависимостью (ошибка 1018): грузим без неё, в .toc она всё равно есть
