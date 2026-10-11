@@ -84,7 +84,8 @@ def main():
     # В описании строки карточек - первая (английская часть) и вторая (русская) строки со ссылками на media/curseforge/
     desc = ROOT / "curseforge/description-core.md"
     lines = desc.read_text(encoding="utf-8").split("\n")
-    spots = [i for i, line in enumerate(lines) if "media/curseforge/" in line or "img.shields.io" in line]
+    # Строки с карточками; кнопки «Послушать примеры» (listen-*.png) тоже лежат в media/curseforge/, их не трогаем
+    spots = [i for i, line in enumerate(lines) if ("media/curseforge/" in line or "img.shields.io" in line) and "listen-" not in line]
     if len(spots) == 2:
         lines[spots[0]], lines[spots[1]] = markdown(packs, "en"), markdown(packs, "ru")
         desc.write_text("\n".join(lines), encoding="utf-8")
