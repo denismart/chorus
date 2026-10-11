@@ -6,7 +6,7 @@ English voice-over for **all Midnight quests**: 3,539 lines, 382 NPCs.
 
 Works with the **English game client** (enUS and enGB). Key characters speak in voices cloned from their in-game recordings: Lor'themar, Liadrin, Umbric, Eitrigg and many more. Other NPCs use voices matching their race and gender. The voice-over is AI-generated and is not official Blizzard voice acting.
 
-**Alpha.** The English pack is new and still being tested. Found a wrong word, a cut-off line or a voice that doesn't fit? Leave a comment or open an issue on [GitHub](https://github.com/denismart/chorus/issues/new/choose) with the quest and the NPC.
+Found a wrong word, a cut-off line or a voice that doesn't fit? Leave a comment or open an issue on [GitHub](https://github.com/denismart/chorus/issues/new/choose) with the quest and the NPC.
 
 [![Listen to voice samples](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/listen-en.png)](https://denismart.github.io/chorus/)
 
