@@ -1,6 +1,6 @@
 # Chorus: Russian voice pack — The War Within
 
-Russian voice-over for **all The War Within quests**: 3,803 lines, 424 NPCs.
+Russian voice-over for **all The War Within quests**: 3,797 lines, 424 NPCs.
 
 **Requires [Chorus](https://www.curseforge.com/wow/addons/chorus)**: the core add-on that plays the audio. The CurseForge app installs it automatically.
 
@@ -12,7 +12,7 @@ Works with the **Russian game client** (ruRU). Key characters speak in voices cl
 
 # Chorus: русская озвучка The War Within
 
-Озвучка **всех заданий The War Within** на русском: 3803 реплики, 424 NPC.
+Озвучка **всех заданий The War Within** на русском: 3797 реплик, 424 NPC.
 
 **Нужен аддон [Chorus](https://www.curseforge.com/wow/addons/chorus)**: это ядро, которое проигрывает звук. Приложение CurseForge поставит его само.
 

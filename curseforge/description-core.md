@@ -14,7 +14,7 @@ The voice-over is AI-generated and is not official Blizzard voice acting.
 
 `Chorus` is the core add-on and contains no audio by itself. Install a voice pack for your language and expansion:
 
-[![Midnight · Russian voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-ru-en.png)](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack) [![Midnight · English voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-en-en.png)](https://www.curseforge.com/wow/addons/chorus-midnight-english-voice-pack) ![The War Within · Russian voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/tww-ru-en.png)
+[![Midnight · Russian voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-ru-en.png)](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack) [![Midnight · English voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-en-en.png)](https://www.curseforge.com/wow/addons/chorus-midnight-english-voice-pack) [![The War Within · Russian voice pack](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/tww-ru-en.png)](https://www.curseforge.com/wow/addons/chorus-the-war-within-russian-voice-pack)
 
 Voice packs are separate downloads, so you only install the languages and expansions you need.
 
@@ -55,7 +55,7 @@ Chorus озвучивает задания World of Warcraft. Ключевые �
 
 `Chorus` — это ядро аддона, в нём самом звуков нет. Поставьте пакет озвучки для своего языка и дополнения:
 
-[![Midnight · Русская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-ru-ru.png)](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack) [![Midnight · Английская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-en-ru.png)](https://www.curseforge.com/wow/addons/chorus-midnight-english-voice-pack) ![The War Within · Русская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/tww-ru-ru.png)
+[![Midnight · Русская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-ru-ru.png)](https://www.curseforge.com/wow/addons/chorus-midnight-russian-voice-pack) [![Midnight · Английская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/midnight-en-ru.png)](https://www.curseforge.com/wow/addons/chorus-midnight-english-voice-pack) [![The War Within · Русская озвучка](https://raw.githubusercontent.com/denismart/chorus/main/media/curseforge/tww-ru-ru.png)](https://www.curseforge.com/wow/addons/chorus-the-war-within-russian-voice-pack)
 
 Пакеты ставятся отдельно: только нужные язык и дополнения.
 
