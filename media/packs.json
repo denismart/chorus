@@ -40,5 +40,19 @@
    "Русская озвучка",
    "3797 реплик · 424 NPC"
   ]
+ },
+ {
+  "id": "tww-en",
+  "title": "THE WAR WITHIN",
+  "icon": "media/packs/src/10-the-war-within-en.png",
+  "url": "https://www.curseforge.com/wow/addons/chorus-the-war-within-english-voice-pack",
+  "en": [
+   "English voice pack",
+   "4,172 lines · 462 NPCs"
+  ],
+  "ru": [
+   "Английская озвучка",
+   "4172 реплики · 462 NPC"
+  ]
  }
 ]
