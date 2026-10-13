@@ -918,6 +918,27 @@ local function Remember(key, text, title)
 	return { key = key, text = text, title = title, npc = npc.name }
 end
 
+-- Библиотека заданий: одна запись на задание (ключ quest<ID>), части - страницы 1 взятие, 2 ход, 3 сдача.
+-- Записываются взятые задания (и от NPC, и от записки), ход и сдача дописываются, когда открывается их окно
+local QUEST_PARTS = { accept = 1, progress = 2, complete = 3 }
+local QUEST_PART_NAMES = { "взятие", "ход выполнения", "сдача" }
+
+local function LibraryQuest(questID, item)
+	if not (questID and item and item.key) then return end
+	local part = QUEST_PARTS[item.key:match("_(%a+)$") or ""]
+	if not part then return end
+	local libKey = "quest" .. questID
+	local book = db.library[libKey]
+	if not book then
+		book = { kind = "quest", title = item.title, author = item.npc, zone = Plain(GetRealZoneText()), pages = {} }
+		db.library[libKey] = book
+	end
+	book.title = item.title or book.title
+	book.author = book.author or item.npc
+	book.pages[part] = item.key
+	book.at = time()  -- последняя открытая часть поднимает задание наверх списка
+end
+
 -- Описание задания из журнала: нужно для заданий, принятых без окна
 local function QuestLogText(questID)
 	if not (C_QuestLog and C_QuestLog.GetLogIndexForQuestID and C_QuestLog.GetLogIndexForQuestID(questID)) then return nil end
@@ -1149,6 +1170,7 @@ function handlers.QUEST_ACCEPTED(questID)
 		if not db.texts[key] then db.texts[key] = { t = text, title = Plain(title) } end
 		item = { key = key, text = text, title = Plain(title), npc = db.texts[key].n }
 	end
+	LibraryQuest(questID, item)
 	if RecentlyPlayed(item.key) then
 		Trace(("не повторяем %s: уже слушали кнопкой"):format(item.key))
 	elseif db.autoQuest then
@@ -1161,6 +1183,8 @@ function handlers.QUEST_PROGRESS()
 	local questID = GetQuestID()
 	if not questID or questID == 0 then return end
 	local item = Remember(("q%d_progress"):format(questID), GetProgressText(), GetTitleText())
+	-- Ход выполнения бывает только у взятого задания: дописываем его в библиотеку
+	LibraryQuest(questID, item)
 	-- Задание в процессе: кнопку не показываем, слушать тут нечего
 	ShowQuestButton(nil)
 	local completable = IsQuestCompletable and IsQuestCompletable()
@@ -1171,6 +1195,7 @@ function handlers.QUEST_COMPLETE()
 	local questID = GetQuestID()
 	if not questID or questID == 0 then return end
 	pendingComplete[questID] = Remember(("q%d_complete"):format(questID), GetRewardText(), GetTitleText())
+	LibraryQuest(questID, pendingComplete[questID])
 	ShowQuestButton(pendingComplete[questID])
 	if db.complete then PlayOnOpen(pendingComplete[questID], questID) end
 end
@@ -2349,7 +2374,10 @@ local function PlayBook(bookKey)
 		local key = book.pages[page]
 		local entry = db.texts[key] or (ChorusTexts and ChorusTexts[key])
 		if entry and entry.t then
-			Enqueue({ key = key, text = (entry.t:gsub("%$N", name)), title = PageTitle(book.title, page), npc = book.author, lib = true })
+			-- У задания части говорят разные NPC (выдал один, сдаём другому), у книги - автор
+			local quest = book.kind == "quest"
+			local title = quest and ("%s: %s"):format(book.title or "задание", QUEST_PART_NAMES[page] or "") or PageTitle(book.title, page)
+			Enqueue({ key = key, text = (entry.t:gsub("%$N", name)), title = title, npc = quest and entry.n or book.author, lib = true })
 		end
 	end
 	db.enabled = wasEnabled
@@ -2433,15 +2461,25 @@ local function CreateLibrary()
 	if f.TitleText then f.TitleText:SetText("Chorus: библиотека") end
 
 	f.search = CreateFrame("EditBox", nil, f, "SearchBoxTemplate")
-	f.search:SetSize(200, 20)
+	f.search:SetSize(170, 20)
 	f.search:SetPoint("TOPLEFT", 20, -32)
 	f.search:SetAutoFocus(false)
 	f.search:HookScript("OnTextChanged", function() f:Refresh() end)
 
-	f.count = f:CreateFontString(nil, "ARTWORK", "GameFontHighlightSmall")
-	f.count:SetPoint("LEFT", f.search, "RIGHT", 12, 0)
-	f.count:SetPoint("RIGHT", -20, 0)
-	f.count:SetJustifyH("RIGHT")
+	-- Что показывать: всё, только книги (книги, письма, таблички) или только задания
+	f.filter = "all"
+	f.filters = {}
+	local previous
+	for _, spec in ipairs({ { "all", "Всё" }, { "book", "Книги" }, { "quest", "Задания" } }) do
+		local b = CreateFrame("Button", nil, f, "UIPanelButtonTemplate")
+		b:SetSize(72, 20)
+		b:SetText(spec[2])
+		if previous then b:SetPoint("LEFT", previous, "RIGHT", 4, 0) else b:SetPoint("LEFT", f.search, "RIGHT", 12, 0) end
+		b:SetScript("OnClick", function() f.filter = spec[1]; f:Refresh() end)
+		f.filters[spec[1]] = b
+		previous = b
+	end
+
 
 	f.scroll = CreateFrame("ScrollFrame", nil, f, "UIPanelScrollFrameTemplate")
 	f.scroll:SetPoint("TOPLEFT", 12, -60)
@@ -2463,23 +2501,27 @@ local function CreateLibrary()
 	f.hint:SetPoint("BOTTOMLEFT", 18, 13)
 	f.hint:SetPoint("RIGHT", f.stop, "LEFT", -8, 0)
 	f.hint:SetJustifyH("LEFT")
-	f.hint:SetText("Сюда попадает всё, что вы открывали и читали в игре.")
+	f.count = f.hint  -- внизу окна: сколько собрано книг и заданий
 
 	f.rows = {}
 	function f:Refresh()
 		local query = Lower((self.search:GetText() or ""):trim())
-		local list, total, voiced = {}, 0, 0
+		local list, books, quests, voiced = {}, 0, 0, 0
 		for key, book in pairs(db.library) do
-			total = total + 1
+			local quest = book.kind == "quest"
+			if quest then quests = quests + 1 else books = books + 1 end
 			if BookVoiced(book) then voiced = voiced + 1 end
 			local haystack = Lower(table.concat({ book.title or "", book.author or "", book.zone or "" }, " "))
-			if query == "" or haystack:find(query, 1, true) then
+			local kindOk = self.filter == "all" or (self.filter == "quest") == quest
+			if kindOk and (query == "" or haystack:find(query, 1, true)) then
 				list[#list + 1] = key
 			end
 		end
 		table.sort(list, function(a, b) return (db.library[a].at or 0) > (db.library[b].at or 0) end)
-		self.count:SetText(("Собрано: %d, с озвучкой: %d"):format(total, voiced))
-		self.empty:SetText(total == 0 and "Библиотека пуста. Откройте в игре книгу, письмо или табличку, и она появится здесь." or (#list == 0 and "Ничего не найдено." or ""))
+		for kind, b in pairs(self.filters) do b:SetEnabled(kind ~= self.filter) end
+		self.count:SetText(("Книг: %d, заданий: %d, с озвучкой: %d"):format(books, quests, voiced))
+		self.empty:SetText(books + quests == 0 and "Библиотека пуста. Сюда попадают книги, письма и таблички, которые вы открывали, и взятые задания."
+			or (#list == 0 and "Ничего не найдено." or ""))
 
 		-- Ширину считаем от окна: при первом показе у области прокрутки она ещё не посчитана
 		local width = self:GetWidth() - 44
@@ -2491,11 +2533,22 @@ local function CreateLibrary()
 			row.bookKey, row.book = key, book
 			row:SetPoint("TOPLEFT", 0, -(index - 1) * ROW_HEIGHT)
 			row:SetWidth(width)
-			local icon = MATERIAL_ICONS[book.material or ""] or (book.author and "Interface\\Icons\\INV_Letter_15") or "Interface\\Icons\\INV_Misc_Book_09"
+			local quest = book.kind == "quest"
+			local icon = quest and "Interface\\GossipFrame\\AvailableQuestIcon" or MATERIAL_ICONS[book.material or ""]
+				or (book.author and "Interface\\Icons\\INV_Letter_15") or "Interface\\Icons\\INV_Misc_Book_09"
 			row.icon:SetTexture(icon)
 			row.title:SetText(book.title or "без названия")
-			local pages = #BookPages(book)
-			local info = { pages == 1 and "1 стр." or (pages .. " стр.") }
+			local info
+			if quest then
+				-- У задания вместо страниц - части: взятие, ход выполнения, сдача
+				local parts = {}
+				for _, page in ipairs(BookPages(book)) do parts[#parts + 1] = QUEST_PART_NAMES[page] end
+				info = { table.concat(parts, ", ") }
+				if book.author then info[#info + 1] = book.author end
+			else
+				local pages = #BookPages(book)
+				info = { pages == 1 and "1 стр." or (pages .. " стр.") }
+			end
 			if book.zone then info[#info + 1] = book.zone end
 			if book.at then info[#info + 1] = date("%d.%m.%Y", book.at) end
 			info[#info + 1] = BookVoiced(book) and "|cff55ff55озвучено|r" or "синтез речи"
