@@ -56,7 +56,14 @@ echo "архив: $zip ($(du -h "$zip" | cut -f1))"
 # GitHub: тег и релиз
 if ! git rev-parse -q --verify "refs/tags/$tag" >/dev/null; then git tag -a "$tag" -m "$name $ver"; fi
 git push -q origin "$tag"
-gh release create "$tag" "$zip" --title "$name $ver" --notes "${notes:-$name $ver}" --prerelease
+# Загрузка архива в полгигабайта иногда обрывается (connection reset): до 4 попыток, недогруженный релиз удаляется
+for attempt in 1 2 3 4; do
+    if gh release view "$tag" --json assets --jq '.assets[].state' 2>/dev/null | grep -q uploaded; then break; fi
+    gh release delete "$tag" --yes >/dev/null 2>&1 || true
+    gh release create "$tag" "$zip" --title "$name $ver" --notes "${notes:-$name $ver}" --prerelease && break
+    echo "GitHub: попытка $attempt не удалась, повтор"; sleep 15
+done
+gh release view "$tag" --json assets --jq '.assets[].state' | grep -q uploaded || { echo "GitHub: не загрузилось"; exit 1; }
 echo "GitHub: готово"
 
 # CurseForge (если настроен)
